@@ -1,0 +1,549 @@
+<!-- AuctionHub - Online Auction Platform Template (No Database) -->
+<!-- Free Web Development Internship Online Task -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuctionHub - Online Auction Platform</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ==================== AUTH SCREEN ==================== -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-bg">
+    <div class="auth-bg-circle c1"></div>
+    <div class="auth-bg-circle c2"></div>
+    <div class="auth-bg-circle c3"></div>
+  </div>
+  <div class="auth-container">
+    <!-- Left Panel -->
+    <div class="auth-left">
+      <div class="auth-logo"><i class="fas fa-gavel"></i><span>AuctionHub</span></div>
+      <h1>Welcome to AuctionHub</h1>
+      <p>The premier online auction platform where you can list items, place bids, and win amazing deals.</p>
+      <div class="auth-features">
+        <div class="auth-feature"><i class="fas fa-shield-alt"></i><span>Secure Bidding</span></div>
+        <div class="auth-feature"><i class="fas fa-clock"></i><span>Real-time Updates</span></div>
+        <div class="auth-feature"><i class="fas fa-trophy"></i><span>Win Amazing Items</span></div>
+        <div class="auth-feature"><i class="fas fa-chart-line"></i><span>Live Analytics</span></div>
+      </div>
+    </div>
+    <!-- Right Panel -->
+    <div class="auth-right">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+      </div>
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+        <h2>Sign In</h2>
+        <p class="auth-subtitle">Welcome back! Please sign in to continue.</p>
+        <div class="form-group">
+          <label>Email Address</label>
+          <div class="input-with-icon">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="login-email" placeholder="Enter your email" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="login-password" placeholder="Enter your password" required />
+            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password')"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="checkbox-label"><input type="checkbox" id="remember-me" /><span>Remember me</span></label>
+          <a href="#" class="forgot-link">Forgot Password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+        <div class="auth-divider"><span>or try demo accounts</span></div>
+        <div class="demo-accounts">
+          <button type="button" class="btn btn-outline btn-sm" onclick="loginAsDemo('admin')"><i class="fas fa-user-shield"></i> Admin</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="loginAsDemo('seller')"><i class="fas fa-store"></i> Seller</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="loginAsDemo('buyer')"><i class="fas fa-user"></i> Buyer</button>
+        </div>
+        <div id="login-error" class="auth-error hidden"></div>
+      </form>
+      <!-- Register Form -->
+      <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Join thousands of bidders and sellers today!</p>
+        <div class="form-row-2">
+          <div class="form-group"><label>First Name</label><input type="text" id="reg-firstname" placeholder="First name" required /></div>
+          <div class="form-group"><label>Last Name</label><input type="text" id="reg-lastname" placeholder="Last name" required /></div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <div class="input-with-icon"><i class="fas fa-envelope"></i><input type="email" id="reg-email" placeholder="Enter your email" required /></div>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <div class="input-with-icon"><i class="fas fa-phone"></i><input type="tel" id="reg-phone" placeholder="Enter your phone" /></div>
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select id="reg-role"><option value="buyer">Buyer</option><option value="seller">Seller</option></select>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-with-icon"><i class="fas fa-lock"></i><input type="password" id="reg-password" placeholder="Create a password" required /></div>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label"><input type="checkbox" id="reg-terms" required /><span>I agree to the <a href="#">Terms &amp; Conditions</a></span></label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full"><i class="fas fa-user-plus"></i> Create Account</button>
+        <div id="register-error" class="auth-error hidden"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div id="main-app" class="main-app hidden">
+
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">🔨 AuctionHub</div>
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar"><i class="fas fa-bars"></i></button>
+    </div>
+    <ul class="nav-links sidebar-nav">
+      <li>
+        <a href="#dashboard" class="nav-item active" onclick="navigate('dashboard', event)" data-page="dashboard">
+          <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="#create-auction" class="nav-item" onclick="navigate('create-auction', event)" data-page="create-auction">
+          <i class="fas fa-plus-circle"></i><span>Create Auction</span>
+        </a>
+      </li>
+      <li>
+        <a href="#auctions" class="nav-item" onclick="navigate('auctions', event)" data-page="auctions">
+          <i class="fas fa-list"></i><span>Auctions</span>
+          <span class="nav-badge" id="active-auctions-badge">0</span>
+        </a>
+      </li>
+      <li>
+        <a href="#categories" class="nav-item" onclick="navigate('categories', event)" data-page="categories">
+          <i class="fas fa-tags"></i><span>Categories</span>
+        </a>
+      </li>
+      <li>
+        <a href="#bids" class="nav-item" onclick="navigate('bids', event)" data-page="bids">
+          <i class="fas fa-hand-holding-usd"></i><span>My Bids</span>
+        </a>
+      </li>
+      <li>
+        <a href="#winnings" class="nav-item" onclick="navigate('winnings', event)" data-page="winnings">
+          <i class="fas fa-trophy"></i><span>My Winnings</span>
+        </a>
+      </li>
+      <li>
+        <a href="#reports" class="nav-item" onclick="navigate('reports', event)" data-page="reports">
+          <i class="fas fa-chart-bar"></i><span>Reports</span>
+        </a>
+      </li>
+      <li class="nav-section-title">Account</li>
+      <li>
+        <a href="#user-dashboard" class="nav-item" onclick="navigate('user-dashboard', event)" data-page="user-dashboard">
+          <i class="fas fa-user-circle"></i><span>My Dashboard</span>
+        </a>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()">
+        <i class="fas fa-moon" id="dark-mode-icon"></i><span>Dark Mode</span>
+      </button>
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebar-avatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-username">User</div>
+          <div class="sidebar-user-role" id="sidebar-userrole">role</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content" id="main-content">
+    <!-- Top Bar -->
+    <header class="top-bar top-navbar">
+      <div class="navbar-left">
+        <button class="hamburger-btn" onclick="toggleMobileSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" id="global-search" placeholder="Search auctions..." oninput="handleGlobalSearch(this.value)" />
+        </div>
+      </div>
+      <div class="navbar-right">
+        <div class="notification-btn" onclick="toggleNotifications()">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge" id="notif-badge">3</span>
+        </div>
+        <div class="navbar-profile" onclick="navigate('user-dashboard', event)">
+          <div class="navbar-avatar" id="navbar-avatar">A</div>
+          <span id="navbar-username">User</span>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </header>
+    <!-- NOTIFICATIONS PANEL -->
+    <div id="notifications-panel" class="notifications-panel hidden">
+      <div class="notif-header"><h4>Notifications</h4><button onclick="markAllRead()">Mark all read</button></div>
+      <div id="notifications-list"></div>
+    </div>
+
+    <!-- PAGES CONTAINER -->
+    <div class="pages-container">
+
+      <!-- Dashboard -->
+      <section id="dashboard" class="page active">
+        <div class="page-header">
+          <div><h1 class="page-title">Dashboard</h1><p class="page-subtitle">Welcome back! Here's what's happening today.</p></div>
+          <button class="btn btn-primary" onclick="navigate('create-auction', event)"><i class="fas fa-plus"></i> New Auction</button>
+        </div>
+        <div class="stats-grid" id="dashboard-stats"></div>
+        <div class="charts-row">
+          <div class="card chart-card">
+            <div class="card-header">
+              <h3>Auction Activity</h3>
+              <select onchange="updateActivityChart(this.value)"><option value="7">Last 7 Days</option><option value="30">Last 30 Days</option></select>
+            </div>
+            <canvas id="activityChart" height="110"></canvas>
+          </div>
+          <div class="card chart-card">
+            <div class="card-header"><h3>Category Distribution</h3></div>
+            <canvas id="categoryChart" height="110"></canvas>
+          </div>
+        </div>
+        <div class="dashboard-bottom">
+          <div class="card">
+            <div class="card-header"><h3>Active Auctions</h3><a href="#auctions" onclick="navigate('auctions', event)" class="view-all">View All →</a></div>
+            <div id="dashboard-active-auctions"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Recent Bids</h3><a href="#bids" onclick="navigate('bids', event)" class="view-all">View All →</a></div>
+            <div id="dashboard-recent-bids"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Auctions -->
+      <section id="auctions" class="page">
+        <div class="page-header">
+          <div><h1 class="page-title">Auctions</h1><p class="page-subtitle">Browse and bid on available items</p></div>
+          <button class="btn btn-primary" onclick="navigate('create-auction', event)"><i class="fas fa-plus"></i> Create Auction</button>
+        </div>
+        <div class="filters-bar">
+          <div class="filter-search"><i class="fas fa-search"></i><input type="text" id="auction-search" placeholder="Search auctions..." oninput="filterAuctions()" /></div>
+          <select id="filter-category" onchange="filterAuctions()"><option value="">All Categories</option></select>
+          <select id="filter-status" onchange="filterAuctions()">
+            <option value="">All Status</option><option value="Active">Active</option>
+            <option value="Upcoming">Upcoming</option><option value="Closed">Closed</option><option value="Sold">Sold</option>
+          </select>
+          <select id="filter-sort" onchange="filterAuctions()">
+            <option value="newest">Newest First</option><option value="ending-soon">Ending Soon</option>
+            <option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option>
+            <option value="most-bids">Most Bids</option>
+          </select>
+          <div class="view-toggle">
+            <button class="view-btn active" id="grid-view-btn" onclick="setViewMode('grid')"><i class="fas fa-th"></i></button>
+            <button class="view-btn" id="list-view-btn" onclick="setViewMode('list')"><i class="fas fa-list"></i></button>
+          </div>
+        </div>
+        <div id="auctions-grid" class="auctions-grid"></div>
+        <div id="no-auctions" class="empty-state hidden">
+          <i class="fas fa-search"></i><h3>No auctions found</h3><p>Try adjusting your search or filters</p>
+        </div>
+      </section>
+
+      <!-- Create Auction -->
+      <section id="create-auction" class="page">
+        <div class="page-header">
+          <div><h1 class="page-title" id="create-auction-title">Create New Auction</h1><p class="page-subtitle">List your item for auction in 4 easy steps</p></div>
+        </div>
+        <div class="step-progress">
+          <div class="step active" data-step="1"><div class="step-circle">1</div><div class="step-label">Basic Info</div></div>
+          <div class="step-line" id="line-1-2"></div>
+          <div class="step" data-step="2"><div class="step-circle">2</div><div class="step-label">Pricing</div></div>
+          <div class="step-line" id="line-2-3"></div>
+          <div class="step" data-step="3"><div class="step-circle">3</div><div class="step-label">Images</div></div>
+          <div class="step-line" id="line-3-4"></div>
+          <div class="step" data-step="4"><div class="step-circle">4</div><div class="step-label">Review</div></div>
+        </div>
+        <div class="card">
+          <!-- Step 1 -->
+          <div class="form-step active" id="step-1">
+            <h3>Basic Information</h3>
+            <div class="form-group"><label>Auction Title *</label><input type="text" id="auction-title" placeholder="e.g., Vintage Rolex Watch 1960s" /></div>
+            <div class="form-group"><label>Description *</label><textarea id="auction-description" rows="4" placeholder="Describe your item in detail..."></textarea></div>
+            <div class="form-row-2">
+              <div class="form-group"><label>Category *</label><select id="auction-category"><option value="">Select Category</option></select></div>
+              <div class="form-group"><label>Condition</label>
+                <select id="auction-condition"><option>New</option><option>Like New</option><option>Good</option><option>Fair</option><option>Poor</option></select>
+              </div>
+            </div>
+            <div class="form-group"><label>Location</label><input type="text" id="auction-location" placeholder="City, Country" /></div>
+            <div class="step-nav"><div></div><button class="btn btn-primary" onclick="nextStep(2)">Next: Pricing <i class="fas fa-arrow-right"></i></button></div>
+          </div>
+          <!-- Step 2 -->
+          <div class="form-step" id="step-2">
+            <h3>Pricing &amp; Duration</h3>
+            <div class="form-row-2">
+              <div class="form-group"><label>Starting Price (₹) *</label><div class="input-with-icon"><i class="fas fa-rupee-sign"></i><input type="number" id="auction-starting-price" placeholder="0.00" min="1" oninput="updateCalc()" /></div></div>
+              <div class="form-group"><label>Reserve Price (₹)</label><div class="input-with-icon"><i class="fas fa-rupee-sign"></i><input type="number" id="auction-reserve-price" placeholder="Optional" min="0" /></div></div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group"><label>Bid Increment (₹)</label><div class="input-with-icon"><i class="fas fa-rupee-sign"></i><input type="number" id="auction-bid-increment" placeholder="100" min="1" value="100" /></div></div>
+              <div class="form-group"><label>Buy Now Price (₹)</label><div class="input-with-icon"><i class="fas fa-rupee-sign"></i><input type="number" id="auction-buy-now" placeholder="Optional" min="0" /></div></div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group"><label>Start Date &amp; Time *</label><input type="datetime-local" id="auction-start-date" /></div>
+              <div class="form-group"><label>End Date &amp; Time *</label><input type="datetime-local" id="auction-end-date" /></div>
+            </div>
+            <div class="calculator-box">
+              <h4><i class="fas fa-calculator"></i> Bid Increment Calculator</h4>
+              <p>Starting from <span id="calc-starting-price">₹0</span>, suggested bid increments:</p>
+              <div id="calc-suggestions"></div>
+            </div>
+            <div class="step-nav">
+              <button class="btn btn-outline" onclick="nextStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+              <button class="btn btn-primary" onclick="nextStep(3)">Next: Images <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+          <!-- Step 3 -->
+          <div class="form-step" id="step-3">
+            <h3>Item Images</h3>
+            <div class="image-upload-area" onclick="document.getElementById('image-file-input').click()" id="image-drop-area">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <p>Click to upload images or drag &amp; drop</p>
+              <span>PNG, JPG, GIF up to 10MB</span>
+              <input type="file" id="image-file-input" accept="image/*" multiple style="display:none" onchange="handleImageUpload(event)" />
+            </div>
+            <div id="image-preview-grid" class="image-preview-grid"></div>
+            <div class="form-group" style="margin-top:1rem;">
+              <label>Or add image URL</label>
+              <div class="input-row">
+                <input type="url" id="image-url-input" placeholder="https://example.com/image.jpg" />
+                <button type="button" class="btn btn-outline" onclick="addImageUrl()">Add</button>
+              </div>
+            </div>
+            <div class="step-nav">
+              <button class="btn btn-outline" onclick="nextStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+              <button class="btn btn-primary" onclick="nextStep(4)">Review <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+          <!-- Step 4 -->
+          <div class="form-step" id="step-4">
+            <h3>Review &amp; Submit</h3>
+            <div id="auction-review-content"></div>
+            <div class="step-nav">
+              <button class="btn btn-outline" onclick="nextStep(3)"><i class="fas fa-arrow-left"></i> Back</button>
+              <button class="btn btn-primary" onclick="submitAuction()"><i class="fas fa-check"></i> Submit Auction</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Auction Detail -->
+      <section id="auction-detail" class="page">
+        <div class="page-header">
+          <button class="btn btn-outline" onclick="navigate('auctions', event)"><i class="fas fa-arrow-left"></i> Back to Auctions</button>
+          <div id="auction-detail-actions"></div>
+        </div>
+        <div id="auction-detail-content"></div>
+      </section>
+
+      <!-- My Bids -->
+      <section id="bids" class="page">
+        <div class="page-header">
+          <div><h1 class="page-title">Bid Management</h1><p class="page-subtitle">Track and manage all bids</p></div>
+        </div>
+        <div class="stats-grid" id="bid-stats"></div>
+        <div class="card">
+          <div class="card-header">
+            <h3>All Bids</h3>
+            <div class="card-actions">
+              <select id="bid-filter-status" onchange="renderBidManagement()">
+                <option value="">All Status</option><option value="Placed">Placed</option><option value="Winning">Winning</option>
+                <option value="Outbid">Outbid</option><option value="Won">Won</option><option value="Lost">Lost</option>
+              </select>
+              <select id="bid-filter-auction" onchange="renderBidManagement()"><option value="">All Auctions</option></select>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead><tr><th>Bidder</th><th>Auction</th><th>Amount</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="bids-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Categories -->
+      <section id="categories" class="page">
+        <div class="page-header">
+          <div><h1 class="page-title">Category Management</h1><p class="page-subtitle">Manage auction categories</p></div>
+          <button class="btn btn-primary" onclick="openAddCategoryModal()"><i class="fas fa-plus"></i> Add Category</button>
+        </div>
+        <div id="categories-grid" class="categories-grid"></div>
+      </section>
+
+      <!-- User Dashboard -->
+      <section id="user-dashboard" class="page">
+        <div class="page-header">
+          <div><h1 class="page-title">My Dashboard</h1><p class="page-subtitle">Manage your account and activity</p></div>
+        </div>
+        <div id="user-profile-card"></div>
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchUserTab('my-bids')">My Bids</button>
+          <button class="tab-btn" onclick="switchUserTab('won-items')">Won Items</button>
+          <button class="tab-btn" onclick="switchUserTab('watchlist')">Watchlist</button>
+          <button class="tab-btn" onclick="switchUserTab('selling')">Selling History</button>
+          <button class="tab-btn" onclick="switchUserTab('settings')">Settings</button>
+        </div>
+        <div id="user-tab-content"></div>
+      </section>
+
+      <!-- Reports -->
+      <section id="reports" class="page">
+        <div class="page-header">
+          <div><h1 class="page-title">Reports &amp; Analytics</h1><p class="page-subtitle">Comprehensive auction data and insights</p></div>
+          <div class="card-actions">
+            <button class="btn btn-outline" onclick="exportReport('csv')"><i class="fas fa-file-csv"></i> Export CSV</button>
+            <button class="btn btn-outline" onclick="exportReport('pdf')"><i class="fas fa-file-pdf"></i> Export PDF</button>
+          </div>
+        </div>
+        <div class="stats-grid" id="report-stats"></div>
+        <div class="charts-row">
+          <div class="card chart-card"><div class="card-header"><h3>Revenue Over Time</h3></div><canvas id="revenueChart" height="120"></canvas></div>
+          <div class="card chart-card"><div class="card-header"><h3>Bids Per Auction</h3></div><canvas id="bidsChart" height="120"></canvas></div>
+        </div>
+        <div class="card" style="margin-top:1.5rem;">
+          <div class="card-header">
+            <h3>Auction Report</h3>
+            <select id="report-filter" onchange="renderReports()">
+              <option value="all">All Auctions</option><option value="Active">Active</option><option value="Sold">Sold</option><option value="Closed">Closed</option>
+            </select>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead><tr><th>Auction</th><th>Category</th><th>Starting Price</th><th>Final Bid</th><th>Total Bids</th><th>Status</th><th>End Date</th></tr></thead>
+              <tbody id="reports-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- My Winnings -->
+      <section id="winnings" class="page">
+        <div class="page-header">
+          <div><h1 class="page-title">Winners &amp; Settlement</h1><p class="page-subtitle">Declare winners and manage settlements</p></div>
+        </div>
+        <div class="stats-grid" id="winner-stats"></div>
+        <div class="card" style="margin-bottom:1.5rem;">
+          <div class="card-header"><h3><i class="fas fa-clock" style="color:var(--warning)"></i> Pending Winner Declaration</h3></div>
+          <div id="pending-winners"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-trophy" style="color:var(--warning)"></i> Declared Winners</h3></div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead><tr><th>Auction</th><th>Winner</th><th>Winning Bid</th><th>Settlement</th><th>Actions</th></tr></thead>
+              <tbody id="winners-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Place Bid Modal -->
+<div id="place-bid-modal" class="modal-overlay hidden" onclick="closeBidModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-gavel"></i> Place Your Bid</h3>
+      <button class="modal-close" onclick="closeBidModalBtn()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="bid-auction-info"></div>
+      <div class="form-group">
+        <label>Your Bid Amount (₹)</label>
+        <div class="input-with-icon"><i class="fas fa-rupee-sign"></i><input type="number" id="bid-amount-input" placeholder="Enter amount" /></div>
+        <div class="bid-hints"><span id="min-bid-hint">Minimum bid: ₹0</span><span id="bid-increment-hint">Increment: ₹100</span></div>
+      </div>
+      <div class="quick-bid-btns" id="quick-bid-btns"></div>
+      <div class="auto-bid-section">
+        <label class="checkbox-label"><input type="checkbox" id="auto-bid-check" onchange="toggleAutoBid()" /><span>Enable Auto-bid (bidding on your behalf)</span></label>
+        <div id="auto-bid-max" class="hidden" style="margin-top:0.75rem;">
+          <div class="form-group"><label>Maximum Auto-bid Amount (₹)</label><div class="input-with-icon"><i class="fas fa-rupee-sign"></i><input type="number" id="auto-bid-max-amount" placeholder="Enter max amount" /></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeBidModalBtn()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitBid()"><i class="fas fa-gavel"></i> Place Bid</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div id="category-modal" class="modal-overlay hidden" onclick="closeCategoryModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="category-modal-title">Add Category</h3>
+      <button class="modal-close" onclick="closeCategoryModalBtn()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-category-id" />
+      <div class="form-group"><label>Category Name *</label><input type="text" id="category-name" placeholder="e.g., Electronics" /></div>
+      <div class="form-group"><label>Icon (Font Awesome class)</label><input type="text" id="category-icon" placeholder="e.g., fas fa-laptop" /></div>
+      <div class="form-group"><label>Description</label><textarea id="category-description" rows="3" placeholder="Category description..."></textarea></div>
+      <div class="form-group"><label>Color</label><input type="color" id="category-color" value="#7C3AED" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeCategoryModalBtn()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCategory()">Save Category</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirm-modal" class="modal-overlay hidden" onclick="closeConfirmModal(event)">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 id="confirm-title">Confirm Action</h3>
+      <button class="modal-close" onclick="closeConfirmModalBtn()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body"><p id="confirm-message">Are you sure?</p></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeConfirmModalBtn()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-action-btn" onclick="executeConfirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+<!-- Mobile Sidebar Overlay -->
+<div id="sidebar-overlay" class="sidebar-overlay hidden" onclick="toggleMobileSidebar()"></div>
+
+<script src="script.js"></script>
+<!-- Auction data stored in JavaScript array -->
+<!-- Bid data stored in JavaScript object -->
+</body>
+</html>

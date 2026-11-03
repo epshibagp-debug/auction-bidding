@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VastraLoom — Week 4 Interactive JavaScript Apparel &amp; Heritage Textiles Prototype</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --indigo-loom: #1E2A4A;
+      --terracotta-warp: #B85042;
+      --teal-dye: #2A6F68;
+      --gold-ochre: #C88A32;
+      --sand-bg: #FAF7F2;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--sand-bg);
+      color: #1E293B;
+      overflow-x: hidden;
+    }
+    .font-serif-display {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    mark.search-highlight {
+      background-color: #FDE68A;
+      color: #92400E;
+      font-weight: 600;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    .is-crossfading {
+      opacity: 0.35;
+      transform: scale(0.99);
+    }
+    .gallery-main-visual {
+      transition: opacity 160ms ease-out, transform 160ms ease-out;
+    }
+    #pdp-weave-loupe {
+      width: 148px;
+      height: 148px;
+      border-radius: 9999px;
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.45), 0 0 0 1px rgba(30, 42, 74, 0.25);
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 30;
+      background-repeat: no-repeat;
+      background-size: 260% 260%;
+      opacity: 0;
+      transition: opacity 120ms ease-out;
+      will-change: transform, background-position;
+    }
+    #pdp-weave-loupe.loupe-visible {
+      opacity: 1;
+    }
+    .swatch-ring-active {
+      box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #1E2A4A;
+    }
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94A3B8;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ARIA Live Region for Screen Reader Announcements -->
+  <div id="aria-status-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Top Academic & Interactive Telemetry Banner -->
+  <div class="bg-[#1E2A4A] text-slate-100 text-xs border-b border-slate-700 px-4 py-2">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 rounded bg-[#B85042] text-white font-semibold tracking-wide uppercase text-[10px]">Week 4 Live Prototype</span>
+        <span class="font-medium">VastraLoom Apparel &amp; Heritage Textiles — Modular ES6+ Interactive Storefront</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="debounce-status-pill" class="font-mono-code text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-600">
+          Debounce: IDLE (250ms)
+        </span>
+        <button type="button" id="btn-toggle-telemetry" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-600 font-mono-code text-[11px] transition">
+          JS Telemetry Log (<span id="telemetry-count">0</span>)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Sticky Navigation Header -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-[#1E2A4A] flex items-center justify-center text-white font-serif-display font-bold text-xl shadow-sm">
+          V
+        </div>
+        <div>
+          <h1 class="font-serif-display text-xl font-bold text-[#1E2A4A] leading-none">VastraLoom</h1>
+          <p class="text-[11px] text-slate-500 tracking-wide uppercase mt-0.5">Artisanal Apparel &amp; Handloom Textiles</p>
+        </div>
+      </div>
+
+      <!-- MODULE 3: Debounced Live Search Input & Predictive Typeahead Overlay -->
+      <div class="relative flex-1 max-w-md min-w-[240px]" id="search-Wrapper">
+        <div class="relative flex items-center">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+          </svg>
+          <input
+            type="text"
+            id="live-search-input"
+            autocomplete="off"
+            placeholder="Search weave, fiber ('linen', 'silk', 'ikkat', '145 gsm')..."
+            aria-label="Search garments and textiles"
+            aria-expanded="false"
+            aria-controls="search-typeahead-dropdown"
+            class="w-full pl-10 pr-8 py-2 text-sm rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E2A4A] focus:border-transparent transition"
+          />
+          <button
+            type="button"
+            id="btn-clear-search"
+            title="Clear search query"
+            aria-label="Clear search query"
+            class="hidden absolute right-2.5 text-slate-400 hover:text-slate-700 text-sm font-bold px-1"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- Predictive Typeahead Dropdown -->
+        <div
+          id="search-typeahead-dropdown"
+          role="listbox"
+          aria-label="Predictive garment suggestions"
+          class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50"
+        ></div>
+      </div>
+
+      <!-- Primary Mode Tabs & Slide-Out Cart Trigger -->
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          id="tab-btn-catalog"
+          data-nav-tab="catalog"
+          class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E2A4A] text-white transition"
+        >
+          Interactive Catalog
+        </button>
+        <button
+          type="button"
+          id="tab-btn-calculator"
+          data-nav-tab="calculator"
+          class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
+        >
+          Fit &amp; Bolt Yardage Studio
+        </button>
+        <button
+          type="button"
+          id="btn-open-cart"
+          aria-label="Open shopping bag drawer"
+          class="relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#B85042] hover:bg-[#a04336] text-white shadow-sm transition"
+        >
+          <span>Loom Bag</span>
+          <span id="cart-badge-count" class="px-1.5 py-0.5 rounded-full bg-white text-[#B85042] font-bold text-[11px] leading-none">
+            0
+          </span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Collapsible Live JS Event & State Telemetry Inspector -->
+  <section id="telemetry-drawer" class="hidden bg-slate-900 text-slate-200 border-b border-slate-700 px-4 py-3">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h2 class="font-mono-code text-xs font-semibold uppercase tracking-wider text-emerald-300">
+            Live ES6+ Event Delegation &amp; StoreState Mutation Stream
+          </h2>
+        </div>
+        <button type="button" id="btn-clear-telemetry" class="text-[11px] font-mono-code text-slate-400 hover:text-white underline">
+          Clear Log
+        </button>
+      </div>
+      <div id="telemetry-log-list" class="font-mono-code text-[11px] space-y-1 max-h-36 overflow-y-auto bg-slate-950/80 p-2.5 rounded-lg border border-slate-800"></div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 1: INTERACTIVE CATALOG & MULTI-FACETED TEXTILE FILTER ENGINE     -->
+  <!-- ===================================================================== -->
+  <main id="view-catalog" class="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- MODULE 1: Multi-Faceted Filter Sidebar -->
+      <aside id="filter-sidebar" class="lg:col-span-3 bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h2 class="text-sm font-bold text-[#1E2A4A]">Textile &amp; Garment Filters</h2>
+            <p class="text-[11px] text-slate-500">Intra-facet OR &bull; Inter-facet AND</p>
+          </div>
+          <button
+            type="button"
+            id="btn-sidebar-reset"
+            data-action="reset-filters"
+            class="text-xs font-semibold text-[#B85042] hover:underline"
+          >
+            Reset All
+          </button>
+        </div>
+
+        <!-- Facet 1: Fiber Composition -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">1. Fiber Composition</h3>
+          <div id="facet-fabric-list" class="space-y-1.5 text-sm"></div>
+        </div>
+
+        <!-- Facet 2: Garment Size -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">2. Available Garment Size</h3>
+          <div id="facet-size-list" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- Facet 3: Natural Dye Family -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">3. Artisanal Dye Palette</h3>
+          <div id="facet-dye-list" class="space-y-1.5 text-sm"></div>
+        </div>
+
+        <!-- Facet 4: Fabric Weight (GSM Slider) -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="slider-max-gsm" class="text-xs font-bold uppercase tracking-wider text-slate-500">4. Max Fabric Weight</label>
+            <span id="label-max-gsm" class="text-xs font-mono-code font-semibold text-[#1E2A4A]">320 GSM</span>
+          </div>
+          <input
+            type="range"
+            id="slider-max-gsm"
+            min="100"
+            max="320"
+            step="10"
+            value="320"
+            class="w-full accent-[#1E2A4A] cursor-pointer"
+          />
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>100 GSM (Sheer Voile)</span>
+            <span>320 GSM (Heavy Twill)</span>
+          </div>
+        </div>
+
+        <!-- Facet 5: Max Price Slider -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="slider-max-price" class="text-xs font-bold uppercase tracking-wider text-slate-500">5. Max Price (USD)</label>
+            <span id="label-max-price" class="text-xs font-mono-code font-semibold text-[#B85042]">$260</span>
+          </div>
+          <input
+            type="range"
+            id="slider-max-price"
+            min="80"
+            max="260"
+            step="10"
+            value="260"
+            class="w-full accent-[#B85042] cursor-pointer"
+          />
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>$80</span>
+            <span>$260</span>
+          </div>
+        </div>
+
+        <!-- Facet 6: In-Stock Toggle -->
+        <div class="pt-2 border-t border-slate-100">
+          <label class="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-700">
+            <input type="checkbox" id="toggle-in-stock" class="rounded text-[#1E2A4A] focus:ring-[#1E2A4A] w-4 h-4" />
+            <span>Immediate Loom Dispatch Only (In Stock)</span>
+          </label>
+        </div>
+      </aside>
+
+      <!-- Main Catalog Column -->
+      <section class="lg:col-span-9 space-y-4">
+        <!-- Toolbar: Result Counter, Active Filter Pills, and Sort Control -->
+        <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="catalog-count-label" class="text-sm font-bold text-[#1E2A4A]">Showing 8 of 8 Artisanal Pieces</span>
+            <div id="active-filter-pills" class="flex flex-wrap items-center gap-1.5"></div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label for="select-sort-by" class="text-xs font-medium text-slate-500">Sort by:</label>
+            <select
+              id="select-sort-by"
+              class="text-xs font-medium rounded-lg border border-slate-300 px-2.5 py-1.5 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1E2A4A]"
+            >
+              <option value="featured">Curated Loom Order</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="gsm-asc">Fabric Weight: Lightest GSM First</option>
+              <option value="gsm-desc">Fabric Weight: Heaviest GSM First</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Delegated Product Grid Container -->
+        <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 2: BIOMETRIC FIT & CUSTOM BOLT YARDAGE STUDIO                    -->
+  <!-- ===================================================================== -->
+  <section id="view-calculator" class="hidden flex-1 max-w-5xl w-full mx-auto px-4 py-6">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-[#1E2A4A] text-white p-6">
+        <span class="text-[11px] font-mono-code uppercase tracking-widest text-amber-300">Module 4 Interactive Utility</span>
+        <h2 class="font-serif-display text-2xl font-bold mt-1">Biometric Garment Fit &amp; Handloom Bolt Yardage Calculator</h2>
+        <p class="text-xs text-slate-300 mt-1 max-w-2xl">
+          Calculate your recommended VastraLoom garment size (XS–XXL) and exact custom fabric bolt length in meters for 44-inch narrow handlooms versus 58-inch wide powerlooms (automatically accounting for 5% natural fiber pre-wash shrinkage).
+        </p>
+      </div>
+
+      <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        <!-- Input Controls -->
+        <form id="fit-calculator-form" class="md:col-span-7 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="calc-garment-select" class="block text-xs font-bold uppercase text-slate-600 mb-1">Target Garment Pattern</label>
+              <select id="calc-garment-select" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-slate-50">
+                <option value="overshirt">Artisanal Camp / Loom Overshirt (Base 2.10m)</option>
+                <option value="kurta_tunic">Heritage Long Kurta / Tunic (Base 2.65m)</option>
+                <option value="trouser">Pleated Wide-Leg Trouser (Base 1.85m)</option>
+                <option value="kaftan_dress">Draped Midi Kaftan Dress (Base 3.20m)</option>
+                <option value="unstructured_blazer">Unstructured Chore Jacket / Blazer (Base 2.50m)</option>
+              </select>
+            </div>
+            <div>
+              <label for="calc-product-link" class="block text-xs font-bold uppercase text-slate-600 mb-1">Pair with Textile SKU</label>
+              <select id="calc-product-link" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-slate-50"></select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label for="input-chest-cm" class="block text-xs font-bold text-slate-700 mb-1">Chest (cm)</label>
+              <input type="number" id="input-chest-cm" min="72" max="145" value="100" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono-code" />
+            </div>
+            <div>
+              <label for="input-waist-cm" class="block text-xs font-bold text-slate-700 mb-1">Waist (cm)</label>
+              <input type="number" id="input-waist-cm" min="58" max="135" value="84" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono-code" />
+            </div>
+            <div>
+              <label for="input-height-cm" class="block text-xs font-bold text-slate-700 mb-1">Height (cm)</label>
+              <input type="number" id="input-height-cm" min="145" max="205" value="176" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono-code" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div>
+              <span class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Silhouette &amp; Drape Ease</span>
+              <div class="grid grid-cols-3 gap-1.5" id="fit-ease-group">
+                <button type="button" data-ease-val="tailored" class="ease-btn px-2.5 py-2 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700">
+                  Tailored (-2cm)
+                </button>
+                <button type="button" data-ease-val="classic" class="ease-btn px-2.5 py-2 rounded-lg text-xs font-semibold border border-[#1E2A4A] bg-[#1E2A4A] text-white">
+                  Classic (0cm)
+                </button>
+                <button type="button" data-ease-val="relaxed" class="ease-btn px-2.5 py-2 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700">
+                  Relaxed (+4cm)
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Handloom Bolt Width</span>
+              <div class="grid grid-cols-2 gap-2" id="bolt-width-group">
+                <button type="button" data-bolt-val="58" class="bolt-btn px-3 py-2 rounded-lg text-xs font-semibold border border-[#1E2A4A] bg-[#1E2A4A] text-white">
+                  58&quot; Wide Loom (1.0x)
+                </button>
+                <button type="button" data-bolt-val="44" class="bolt-btn px-3 py-2 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700">
+                  44&quot; Handloom (1.28x)
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- Live Calculation Output Card -->
+        <div class="md:col-span-5 bg-[#FAF7F2] rounded-xl border-2 border-[#1E2A4A] p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#B85042]">Recommended Ready-to-Wear Size</span>
+              <div id="calc-output-size" class="text-3xl font-serif-display font-bold text-[#1E2A4A] mt-0.5">Size M</div>
+            </div>
+            <div class="text-right">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#2A6F68]">Bespoke Bolt Yardage</span>
+              <div id="calc-output-meters" class="text-2xl font-mono-code font-bold text-[#2A6F68] mt-0.5">2.28 Meters</div>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 text-xs text-slate-700">
+            <div class="flex justify-between">
+              <span>Effective Chest with Drape Ease:</span>
+              <strong id="calc-detail-chest" class="font-mono-code">100 cm (Classic)</strong>
+            </div>
+            <div class="flex justify-between">
+              <span>Loom Width Multiplier:</span>
+              <strong id="calc-detail-bolt" class="font-mono-code">58&quot; Wide Bolt (1.00x)</strong>
+            </div>
+            <div class="flex justify-between">
+              <span>5% Pre-Wash Shrinkage Allowance:</span>
+              <strong id="calc-detail-shrinkage" class="font-mono-code">+0.11 Meters</strong>
+            </div>
+          </div>
+
+          <p id="calc-output-note" class="text-xs italic text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200"></p>
+
+          <button
+            type="button"
+            id="btn-add-calculated-item"
+            class="w-full py-2.5 px-4 rounded-xl bg-[#B85042] hover:bg-[#9e4135] text-white font-semibold text-xs shadow transition"
+          >
+            Add Configured Garment &amp; Custom Yardage to Loom Bag
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- MODULE 2: PRODUCT DETAIL, SWATCH SWITCHER & 2.5x WEAVE LOUPE MODAL    -->
+  <!-- ===================================================================== -->
+  <div
+    id="pdp-inspector-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="pdp-modal-title"
+    class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+  >
+    <div class="bg-white rounded-2xl max-w-4xl w-full border border-slate-200 shadow-2xl overflow-hidden my-auto">
+      <!-- Modal Top Header -->
+      <div class="bg-[#1E2A4A] text-white px-5 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span id="pdp-modal-sku" class="font-mono-code text-xs px-2 py-0.5 rounded bg-slate-800 text-amber-300">VL-101</span>
+          <h2 id="pdp-modal-title" class="font-serif-display text-lg font-bold">Indigo Handloom Linen Overshirt</h2>
+        </div>
+        <button
+          type="button"
+          id="btn-close-pdp-modal"
+          aria-label="Close weave inspector modal"
+          class="text-slate-300 hover:text-white text-xl font-bold px-2 leading-none"
+        >
+          &times;
+        </button>
+      </div>
+
+      <div class="p-5 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        <!-- Left Column: Interactive Gallery Stage + 2.5x Weave Magnifier Loupe -->
+        <div class="md:col-span-6 space-y-3">
+          <div
+            id="pdp-gallery-stage"
+            class="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 aspect-[4/3] cursor-crosshair select-none"
+          >
+            <img
+              id="pdp-main-image"
+              src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='450'></svg>"
+              alt="Garment preview"
+              class="gallery-main-visual w-full h-full object-cover"
+            />
+            <!-- 2.5x Optical Weave Magnifier Lens -->
+            <div id="pdp-weave-loupe" aria-hidden="true"></div>
+
+            <div class="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-900/75 text-white text-[11px] pointer-events-none">
+              <span>Hover/Move cursor to inspect 2.5x Warp &amp; Weft Grain</span>
+              <span id="pdp-loupe-coords" class="font-mono-code text-amber-300">x:50% y:50%</span>
+            </div>
+          </div>
+
+          <!-- Multi-Angle Thumbnail Strip -->
+          <div class="flex items-center justify-between gap-2" id="pdp-angle-strip">
+            <button type="button" data-angle-idx="0" class="angle-thumb-btn flex-1 py-2 px-2.5 rounded-lg border-2 border-[#1E2A4A] bg-slate-50 text-xs font-semibold text-[#1E2A4A]">
+              1. Garment Drape
+            </button>
+            <button type="button" data-angle-idx="1" class="angle-thumb-btn flex-1 py-2 px-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-600">
+              2. 2.5x Macro Weave
+            </button>
+            <button type="button" data-angle-idx="2" class="angle-thumb-btn flex-1 py-2 px-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-600">
+              3. Selvedge &amp; Stitch
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Swatch Selector, Textile Specs & Add to Bag -->
+        <div class="md:col-span-6 space-y-4">
+          <div class="flex items-baseline justify-between border-b border-slate-100 pb-3">
+            <div>
+              <span id="pdp-modal-fabric" class="text-xs font-bold uppercase tracking-wider text-[#2A6F68]">Handloom Linen</span>
+              <p id="pdp-modal-weave" class="text-xs text-slate-500 mt-0.5">Plain Slub Handloom &bull; 145 GSM</p>
+            </div>
+            <div id="pdp-modal-price" class="text-2xl font-bold text-[#1E2A4A]">$128</div>
+          </div>
+
+          <p id="pdp-modal-desc" class="text-xs text-slate-600 leading-relaxed"></p>
+
+          <!-- Dynamic Natural Dye Swatch Switcher -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Natural Dye Colorway:</span>
+              <span id="pdp-active-swatch-name" class="text-xs font-semibold text-[#1E2A4A]">Natural Indigo</span>
+            </div>
+            <div id="pdp-swatch-container" class="flex items-center gap-2.5"></div>
+          </div>
+
+          <!-- Size Selector -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Select Garment Size:</span>
+              <button type="button" id="btn-jump-to-calc" class="text-xs font-semibold text-[#B85042] hover:underline">
+                Open Biometric Fit &amp; Yardage Studio &rarr;
+              </button>
+            </div>
+            <div id="pdp-size-container" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="pt-2 flex items-center gap-3">
+            <button
+              type="button"
+              id="btn-pdp-add-to-cart"
+              class="flex-1 py-2.5 px-4 rounded-xl bg-[#1E2A4A] hover:bg-slate-800 text-white font-semibold text-xs shadow transition"
+            >
+              Add Selected Piece to Loom Bag
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODULE 4: SLIDE-OUT PERSISTENT CART DRAWER                            -->
+  <!-- ===================================================================== -->
+  <div id="cart-drawer-backdrop" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs">
+    <aside
+      id="cart-drawer-panel"
+      role="dialog"
+      aria-label="Shopping bag"
+      class="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col z-50"
+    >
+      <div class="bg-[#1E2A4A] text-white px-5 py-4 flex items-center justify-between">
+        <div>
+          <h2 class="font-serif-display text-lg font-bold">Your VastraLoom Bag</h2>
+          <p class="text-[11px] text-slate-300">Persisted via ES6 Map &amp; localStorage</p>
+        </div>
+        <button
+          type="button"
+          id="btn-close-cart"
+          aria-label="Close shopping bag"
+          class="text-slate-300 hover:text-white text-2xl font-bold leading-none px-1"
+        >
+          &times;
+        </button>
+      </div>
+
+      <!-- Free Artisanal Shipping Meter -->
+      <div class="bg-[#FAF7F2] px-5 py-2.5 border-b border-slate-200">
+        <div class="flex justify-between text-xs font-medium mb-1">
+          <span id="cart-shipping-msg" class="text-slate-700">Add $200 for Complimentary Loom Courier</span>
+          <span id="cart-shipping-pct" class="font-mono-code font-bold text-[#2A6F68]">0%</span>
+        </div>
+        <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+          <div id="cart-shipping-bar" class="h-full bg-[#2A6F68] transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Cart Line Items -->
+      <div id="cart-items-list" class="flex-1 overflow-y-auto p-5 space-y-3"></div>
+
+      <!-- Cart Footer -->
+      <div class="border-t border-slate-200 p-5 bg-slate-50 space-y-3">
+        <div class="flex items-center justify-between text-sm">
+          <span class="font-semibold text-slate-600">Estimated Subtotal:</span>
+          <span id="cart-subtotal-value" class="text-lg font-bold text-[#1E2A4A]">$0.00</span>
+        </div>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            id="btn-clear-cart"
+            class="px-3 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold"
+          >
+            Empty Bag
+          </button>
+          <button
+            type="button"
+            id="btn-checkout-action"
+            class="flex-1 py-2.5 px-4 rounded-xl bg-[#B85042] hover:bg-[#9e4135] text-white text-xs font-semibold shadow"
+          >
+            Simulate Artisanal Order Checkout
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Toast Notification Banner -->
+  <div
+    id="app-toast"
+    role="status"
+    aria-live="polite"
+    class="hidden fixed bottom-5 right-5 z-50 bg-[#1E2A4A] text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 text-xs font-medium flex items-center gap-2.5"
+  >
+    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="app-toast-text">Action completed</span>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODULAR ES6+ JAVASCRIPT IMPLEMENTATION                                -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * PROCEDURAL HIGH-RES TEXTILE SVG GENERATOR
+     * Generates crisp, deterministic SVG fabric weave textures & garment visuals
+     * so every colorway swatch and 2.5x weave magnifier angle renders with zero external dependencies.
+     */
+    function buildTextileSvgDataUri(title, subtitle, primaryHex, secondaryHex, weaveType, angleIndex = 0) {
+      const cleanTitle = title.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+      const cleanSub = subtitle.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+      const patternId = `weave_${weaveType.replace(/\W+/g, '')}_${angleIndex}`;
+
+      let patternMarkup = '';
+      if (angleIndex === 1) {
+        // Macro weave grid for 2.5x inspection
+        patternMarkup = `
+          <pattern id="${patternId}" width="16" height="16" patternUnits="userSpaceOnUse">
+            <rect width="16" height="16" fill="${primaryHex}"/>
+            <path d="M 0 4 L 16 4 M 0 12 L 16 12" stroke="${secondaryHex}" stroke-width="2.5" stroke-opacity="0.55"/>
+            <path d="M 4 0 L 4 16 M 12 0 L 12 16" stroke="#ffffff" stroke-width="2" stroke-opacity="0.32"/>
+            <circle cx="4" cy="4" r="1.5" fill="${secondaryHex}"/>
+            <circle cx="12" cy="12" r="1.5" fill="#ffffff" fill-opacity="0.6"/>
+          </pattern>`;
+      } else if (angleIndex === 2) {
+        // Selvedge & diagonal twill lines
+        patternMarkup = `
+          <pattern id="${patternId}" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+            <rect width="20" height="20" fill="${primaryHex}"/>
+            <line x1="0" y1="0" x2="0" y2="20" stroke="${secondaryHex}" stroke-width="5" stroke-opacity="0.5"/>
+            <line x1="10" y1="0" x2="10" y2="20" stroke="#ffffff" stroke-width="2" stroke-opacity="0.35"/>
+          </pattern>`;
+      } else {
+        // Fine garment drape crosshatch
+        patternMarkup = `
+          <pattern id="${patternId}" width="12" height="12" patternUnits="userSpaceOnUse">
+            <rect width="12" height="12" fill="${primaryHex}"/>
+            <path d="M 0 6 L 12 6 M 6 0 L 6 12" stroke="${secondaryHex}" stroke-width="1.4" stroke-opacity="0.42"/>
+          </pattern>`;
+      }
+
+      const angleLabels = ['GARMENT DRAPE VIEW', '2.5x MACRO WARP & WEFT GRAIN', 'SELVEDGE & ARTISANAL STITCH'];
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480">
+        <defs>${patternMarkup}</defs>
+        <rect width="640" height="480" fill="url(#${patternId})"/>
+        <rect x="24" y="24" width="592" height="432" rx="14" fill="none" stroke="#ffffff" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="6 4"/>
+        <!-- Garment Silhouette Motif -->
+        <g transform="translate(220, 75)" opacity="0.92">
+          <path d="M55,15 L145,15 L185,65 L155,95 L140,70 L140,245 L60,245 L60,70 L45,95 L15,65 Z"
+                fill="${secondaryHex}" fill-opacity="0.35" stroke="#ffffff" stroke-width="3"/>
+          <line x1="100" y1="15" x2="100" y2="245" stroke="#ffffff" stroke-width="2" stroke-dasharray="4 4"/>
+        </g>
+        <rect x="36" y="348" width="568" height="86" rx="10" fill="#0F172A" fill-opacity="0.82"/>
+        <text x="56" y="380" fill="#F8FAFC" font-family="Georgia, serif" font-size="21" font-weight="bold">${cleanTitle}</text>
+        <text x="56" y="406" fill="#FDE68A" font-family="monospace" font-size="13">${cleanSub}</text>
+        <text x="56" y="424" fill="#CBD5E1" font-family="sans-serif" font-size="11">${angleLabels[angleIndex] || angleLabels[0]}</text>
+      </svg>`;
+
+      return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    }
+
+    /**
+     * MASTER APPAREL & HERITAGE TEXTILES CATALOG DATA
+     */
+    const MASTER_CATALOG = [
+      {
+        id: 'VL-101',
+        sku: 'VL-LIN-101',
+        title: 'Indigo Handloom Linen Overshirt',
+        fabric: 'Handloom Linen',
+        weave: 'Plain Slub Handloom',
+        gsm: 145,
+        price: 128,
+        dyePalette: 'Natural Indigo',
+        availableSizes: ['XS', 'S', 'M', 'L', 'XL'],
+        inStock: true,
+        featuredRank: 1,
+        garmentType: 'overshirt',
+        description: 'Woven on pit looms from 60-count Belgian & Bengal flax yarns. Dyed in fermented natural indigo vats with breathable 145 GSM open slub texture ideal for humid climates.',
+        colorVariants: [
+          { name: 'Natural Indigo', hex: '#1E3A5F', secondaryHex: '#60A5FA', dyeOrigin: 'True Indigofera Vat' },
+          { name: 'Madder Terracotta', hex: '#9A3412', secondaryHex: '#FDBA74', dyeOrigin: 'Rubia Cordifolia Root' },
+          { name: 'Kora Unbleached', hex: '#A8A29E', secondaryHex: '#F5F5F4', dyeOrigin: 'Raw Unbleached Flax' }
+        ]
+      },
+      {
+        id: 'VL-102',
+        sku: 'VL-SLK-102',
+        title: 'Ahimsa Mulberry Silk Kurta Tunic',
+        fabric: 'Mulberry Silk',
+        weave: 'Tussar Herringbone Twill',
+        gsm: 120,
+        price: 185,
+        dyePalette: 'Turmeric Ochre',
+        availableSizes: ['S', 'M', 'L', 'XL'],
+        inStock: true,
+        featuredRank: 2,
+        garmentType: 'kurta_tunic',
+        description: 'Cruelty-free Ahimsa peace silk combined with mulberry warp threads. Features a subtle herringbone lustre and ultra-light 120 GSM fluid drape.',
+        colorVariants: [
+          { name: 'Turmeric Ochre', hex: '#B45309', secondaryHex: '#FDE047', dyeOrigin: 'Curcuma Longa Rhizome' },
+          { name: 'Pomegranate Rind', hex: '#7F1D1D', secondaryHex: '#FCA5A5', dyeOrigin: 'Punica Granatum Tannin' },
+          { name: 'Forest Myrobalan', hex: '#14532D', secondaryHex: '#86EFAC', dyeOrigin: 'Haritaki Iron Mordant' }
+        ]
+      },
+      {
+        id: 'VL-103',
+        sku: 'VL-KHD-103',
+        title: 'Ambar Charkha Khadi Wide-Leg Trouser',
+        fabric: 'Khadi Cotton',
+        weave: 'Double-Twisted Basket Weave',
+        gsm: 210,
+        price: 112,
+        dyePalette: 'Madder Root',
+        availableSizes: ['XS', 'S', 'M', 'L', 'XXL'],
+        inStock: true,
+        featuredRank: 3,
+        garmentType: 'trouser',
+        description: 'Hand-spun on an 8-spindle Ambar Charkha and woven in a structured 210 GSM basket weave that softens with every wash while holding a crisp architectural pleat.',
+        colorVariants: [
+          { name: 'Madder Root', hex: '#881337', secondaryHex: '#FDA4AF', dyeOrigin: 'Alizarin Clay Mordant' },
+          { name: 'Charcoal Iron', hex: '#334155', secondaryHex: '#94A3B8', dyeOrigin: 'Ferrous Jaggery Vat' }
+        ]
+      },
+      {
+        id: 'VL-104',
+        sku: 'VL-IKT-104',
+        title: 'Pochampally Double-Ikkat Midi Kaftan',
+        fabric: 'Mercerized Cotton-Silk',
+        weave: 'Resist-Dyed Double Ikkat',
+        gsm: 135,
+        price: 215,
+        dyePalette: 'Natural Indigo',
+        availableSizes: ['S', 'M', 'L'],
+        inStock: true,
+        featuredRank: 4,
+        garmentType: 'kaftan_dress',
+        description: 'Both warp and weft yarn bundles are tie-dyed prior to loom mounting, creating feathered geometric motifs with zero print paste stiffness.',
+        colorVariants: [
+          { name: 'Natural Indigo', hex: '#1E293B', secondaryHex: '#38BDF8', dyeOrigin: 'Deep Resist Indigo' },
+          { name: 'Madder Crimson', hex: '#7C2D12', secondaryHex: '#FDBA74', dyeOrigin: 'Double-Tied Alizarin' }
+        ]
+      },
+      {
+        id: 'VL-105',
+        sku: 'VL-MRN-105',
+        title: 'Himalayan Merino &amp; Hemp Chore Blazer',
+        fabric: 'Merino Wool Blend',
+        weave: 'Broken Twill Selvedge',
+        gsm: 290,
+        price: 248,
+        dyePalette: 'Walnut Husk',
+        availableSizes: ['M', 'L', 'XL', 'XXL'],
+        inStock: false,
+        featuredRank: 5,
+        garmentType: 'unstructured_blazer',
+        description: 'Heavyweight 290 GSM unstructured outer layer blending high-altitude sheep wool with wild Himalayan nettle-hemp warp for rugged breathability.',
+        colorVariants: [
+          { name: 'Walnut Husk', hex: '#451A03', secondaryHex: '#D97706', dyeOrigin: 'Juglans Regia Hull' },
+          { name: 'Slate Lichen', hex: '#1E293B', secondaryHex: '#64748B', dyeOrigin: 'Highland Stone Moss' }
+        ]
+      },
+      {
+        id: 'VL-106',
+        sku: 'VL-LIN-106',
+        title: 'Jamdani Featherweight Linen Tunic Shirt',
+        fabric: 'Handloom Linen',
+        weave: 'Discontinuous Weft Jamdani',
+        gsm: 115,
+        price: 154,
+        dyePalette: 'Kora Unbleached',
+        availableSizes: ['XS', 'S', 'M', 'L'],
+        inStock: true,
+        featuredRank: 6,
+        garmentType: 'overshirt',
+        description: 'Ultra-sheer 115 GSM summer linen inlaid with supplementary cotton weft motifs by hand using a bamboo needle directly on the loom.',
+        colorVariants: [
+          { name: 'Kora Unbleached', hex: '#57534E', secondaryHex: '#E7E5E4', dyeOrigin: 'Unbleached Oatmeal Flax' },
+          { name: 'Sage Myrabolan', hex: '#115E59', secondaryHex: '#5EEAD4', dyeOrigin: 'Terminalia Chebula Leaf' }
+        ]
+      },
+      {
+        id: 'VL-107',
+        sku: 'VL-KHD-107',
+        title: 'Kala Cotton Selvedge Utility Jacket',
+        fabric: 'Khadi Cotton',
+        weave: '3x1 Right-Hand Twill',
+        gsm: 275,
+        price: 168,
+        dyePalette: 'Natural Indigo',
+        availableSizes: ['S', 'M', 'L', 'XL'],
+        inStock: true,
+        featuredRank: 7,
+        garmentType: 'unstructured_blazer',
+        description: 'Crafted from rain-fed indigenous Kachchh Kala cotton. Features exposed red-and-white handloom selvedge along the interior placket.',
+        colorVariants: [
+          { name: 'Natural Indigo', hex: '#172554', secondaryHex: '#93C5FD', dyeOrigin: '8-Dip Khadi Indigo' },
+          { name: 'Walnut Husk', hex: '#3F2E21', secondaryHex: '#FCD34D', dyeOrigin: 'Roasted Acacia Bark' }
+        ]
+      },
+      {
+        id: 'VL-108',
+        sku: 'VL-SLK-108',
+        title: 'Eri Peace Silk Relaxed Lounge Trouser',
+        fabric: 'Mulberry Silk',
+        weave: 'Spun Thermal Matka Weave',
+        gsm: 175,
+        price: 142,
+        dyePalette: 'Madder Root',
+        availableSizes: ['XS', 'S', 'M', 'L', 'XL'],
+        inStock: true,
+        featuredRank: 8,
+        garmentType: 'trouser',
+        description: 'Textured thermal-regulating Eri silk spun like cotton, offering a matte pebble surface and cloud-like drape for year-round wear.',
+        colorVariants: [
+          { name: 'Madder Root', hex: '#9F1239', secondaryHex: '#FECDD3', dyeOrigin: 'Assam Lac &amp; Madder' },
+          { name: 'Turmeric Ochre', hex: '#854D0E', secondaryHex: '#FEF08A', dyeOrigin: 'Marigold &amp; Haldi' }
+        ]
+      }
+    ];
+
+    /**
+     * CENTRAL REACTIVE STORE STATE SINGLETON
+     */
+    const StoreState = {
+      catalog: MASTER_CATALOG,
+      filteredCatalog: [...MASTER_CATALOG],
+      cardActiveSwatches: {}, // productId -> colorName
+      filters: {
+        fabrics: new Set(),
+        sizes: new Set(),
+        dyes: new Set(),
+        maxGsm: 320,
+        maxPrice: 260,
+        inStockOnly: false,
+        searchQuery: '',
+        sortBy: 'featured'
+      },
+      pdpModal: {
+        isOpen: false,
+        productId: 'VL-101',
+        activeSwatchName: 'Natural Indigo',
+        activeAngleIndex: 0,
+        selectedSize: 'M'
+      },
+      fitStudio: {
+        garmentType: 'overshirt',
+        linkedProductId: 'VL-101',
+        chestCm: 100,
+        waistCm: 84,
+        heightCm: 176,
+        fitPreference: 'classic',
+        boltWidthInches: 58
+      },
+      cart: new Map(),
+      telemetryEvents: [],
+      searchHighlightIndex: -1
+    };
+
+    const ImagePreloadCache = new Map();
+
+    /**
+     * TELEMETRY LOGGER & SCREEN READER ANNOUNCER
+     */
+    function logTelemetry(moduleName, actionSummary) {
+      const ts = new Date().toLocaleTimeString();
+      StoreState.telemetryEvents.unshift({ ts, moduleName, actionSummary });
+      if (StoreState.telemetryEvents.length > 30) StoreState.telemetryEvents.pop();
+
+      const countEl = document.getElementById('telemetry-count');
+      if (countEl) countEl.textContent = String(StoreState.telemetryEvents.length);
+
+      const listEl = document.getElementById('telemetry-log-list');
+      if (listEl) {
+        listEl.innerHTML = StoreState.telemetryEvents
+          .map((ev) => `<div><span class="text-slate-500">[${ev.ts}]</span> <span class="text-amber-300 font-semibold">${ev.moduleName}:</span> ${ev.actionSummary}</div>`)
+          .join('');
+      }
+    }
+
+    function announceToScreenReader(message) {
+      const region = document.getElementById('aria-status-region');
+      if (region) region.textContent = message;
+    }
+
+    let toastTimer = null;
+    function showToast(message) {
+      const toast = document.getElementById('app-toast');
+      const text = document.getElementById('app-toast-text');
+      if (!toast || !text) return;
+      text.textContent = message;
+      toast.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2800);
+    }
+
+    /**
+     * MODULE 3: DEBOUNCE CLOSURE & HIGHLIGHT HELPER
+     */
+    function debounce(fn, delayMs = 250) {
+      let timeoutId = null;
+      return function debouncedWrapper(...args) {
+        const pill = document.getElementById('debounce-status-pill');
+        if (pill) {
+          pill.textContent = `Debounce: BUFFERING (${delayMs}ms)...`;
+          pill.className = 'font-mono-code text-[11px] px-2.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700';
+        }
+        if (timeoutId !== null) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          timeoutId = null;
+          if (pill) {
+            pill.textContent = `Debounce: FIRED (${delayMs}ms)`;
+            pill.className = 'font-mono-code text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-600';
+          }
+          fn.apply(this, args);
+        }, delayMs);
+      };
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+
+    function highlightMatchedSubstring(text, query) {
+      const safeText = escapeHtml(text);
+      if (!query) return safeText;
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(${escapedQuery})`, 'gi');
+      return safeText.replace(regex, '<mark class="search-highlight">$1</mark>');
+    }
+
+    /**
+     * MODULE 1: INITIALIZE FILTER SIDEBAR & APPLY MULTI-FACET FILTERING
+     */
+    function buildFilterSidebarFacets() {
+      const fabricCounts = {};
+      const dyeCounts = {};
+      const allSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+      StoreState.catalog.forEach((p) => {
+        fabricCounts[p.fabric] = (fabricCounts[p.fabric] || 0) + 1;
+        dyeCounts[p.dyePalette] = (dyeCounts[p.dyePalette] || 0) + 1;
+      });
+
+      const fabricContainer = document.getElementById('facet-fabric-list');
+      if (fabricContainer) {
+        fabricContainer.innerHTML = Object.entries(fabricCounts)
+          .map(([fabric, count]) => `
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="flex items-center gap-2 text-xs text-slate-700">
+                <input type="checkbox" data-facet-group="fabrics" value="${escapeHtml(fabric)}" class="rounded text-[#1E2A4A] w-3.5 h-3.5" />
+                <span>${escapeHtml(fabric)}</span>
+              </span>
+              <span class="text-[11px] font-mono-code px-1.5 py-0.2 rounded bg-slate-100 text-slate-500">${count}</span>
+            </label>`)
+          .join('');
+      }
+
+      const sizeContainer = document.getElementById('facet-size-list');
+      if (sizeContainer) {
+        sizeContainer.innerHTML = allSizes
+          .map((sz) => `
+            <button type="button" data-facet-size="${sz}" class="px-2.5 py-1 rounded-md text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:border-[#1E2A4A] transition">
+              ${sz}
+            </button>`)
+          .join('');
+      }
+
+      const dyeContainer = document.getElementById('facet-dye-list');
+      if (dyeContainer) {
+        dyeContainer.innerHTML = Object.entries(dyeCounts)
+          .map(([dye, count]) => `
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="flex items-center gap-2 text-xs text-slate-700">
+                <input type="checkbox" data-facet-group="dyes" value="${escapeHtml(dye)}" class="rounded text-[#B85042] w-3.5 h-3.5" />
+                <span>${escapeHtml(dye)}</span>
+              </span>
+              <span class="text-[11px] font-mono-code px-1.5 py-0.2 rounded bg-slate-100 text-slate-500">${count}</span>
+            </label>`)
+          .join('');
+      }
+    }
+
+    function applyFacetFilters() {
+      const { fabrics, sizes, dyes, maxGsm, maxPrice, inStockOnly, searchQuery, sortBy } = StoreState.filters;
+      const q = searchQuery.trim().toLowerCase();
+
+      const matched = StoreState.catalog.filter((item) => {
+        const matchFabric = fabrics.size === 0 || fabrics.has(item.fabric);
+        const matchSize = sizes.size === 0 || item.availableSizes.some((s) => sizes.has(s));
+        const matchDye = dyes.size === 0 || dyes.has(item.dyePalette);
+        const matchGsm = item.gsm <= maxGsm;
+        const matchPrice = item.price <= maxPrice;
+        const matchStock = !inStockOnly || item.inStock;
+        const matchSearch = q === '' ||
+          item.title.toLowerCase().includes(q) ||
+          item.fabric.toLowerCase().includes(q) ||
+          item.weave.toLowerCase().includes(q) ||
+          item.sku.toLowerCase().includes(q);
+
+        return matchFabric && matchSize && matchDye && matchGsm && matchPrice && matchStock && matchSearch;
+      });
+
+      matched.sort((a, b) => {
+        if (sortBy === 'price-asc') return a.price - b.price;
+        if (sortBy === 'price-desc') return b.price - a.price;
+        if (sortBy === 'gsm-asc') return a.gsm - b.gsm;
+        if (sortBy === 'gsm-desc') return b.gsm - a.gsm;
+        return a.featuredRank - b.featuredRank;
+      });
+
+      StoreState.filteredCatalog = matched;
+      renderCatalogGrid(matched);
+      renderActiveFilterPills();
+      announceToScreenReader(`Showing ${matched.length} of ${StoreState.catalog.length} artisanal textile pieces.`);
+      logTelemetry('FilterEngine', `Evaluated facets -> ${matched.length}/${StoreState.catalog.length} garments matched`);
+    }
+
+    function renderActiveFilterPills() {
+      const container = document.getElementById('active-filter-pills');
+      const countLabel = document.getElementById('catalog-count-label');
+      if (countLabel) {
+        countLabel.textContent = `Showing ${StoreState.filteredCatalog.length} of ${StoreState.catalog.length} Artisanal Pieces`;
+      }
+      if (!container) return;
+
+      const pills = [];
+      StoreState.filters.fabrics.forEach((val) => pills.push({ type: 'fabric', label: val, val }));
+      StoreState.filters.sizes.forEach((val) => pills.push({ type: 'size', label: `Size: ${val}`, val }));
+      StoreState.filters.dyes.forEach((val) => pills.push({ type: 'dye', label: val, val }));
+      if (StoreState.filters.maxGsm < 320) pills.push({ type: 'gsm', label: `<=${StoreState.filters.maxGsm} GSM` });
+      if (StoreState.filters.maxPrice < 260) pills.push({ type: 'price', label: `<=$${StoreState.filters.maxPrice}` });
+      if (StoreState.filters.inStockOnly) pills.push({ type: 'stock', label: 'In Stock Only' });
+      if (StoreState.filters.searchQuery) pills.push({ type: 'query', label: `"${StoreState.filters.searchQuery}"` });
+
+      container.innerHTML = pills
+        .map((p) => `
+          <button
+            type="button"
+            data-remove-pill="${p.type}"
+            data-pill-val="${escapeHtml(p.val || '')}"
+            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#1E2A4A]/10 text-[#1E2A4A] hover:bg-[#B85042] hover:text-white transition"
+          >
+            <span>${escapeHtml(p.label)}</span>
+            <span class="font-bold">&times;</span>
+          </button>`)
+        .join('');
+    }
+
+    function renderCatalogGrid(products) {
+      const grid = document.getElementById('catalog-grid');
+      if (!grid) return;
+
+      if (products.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-3">
+            <div class="w-12 h-12 rounded-full bg-amber-100 text-[#B85042] mx-auto flex items-center justify-center font-bold text-xl">!</div>
+            <h3 class="font-serif-display text-lg font-bold text-[#1E2A4A]">No Artisanal Garments Match Your Exact Filter Set</h3>
+            <p class="text-xs text-slate-500 max-w-md mx-auto">
+              Try raising your maximum GSM weight threshold or clearing one of your selected natural dye or fiber checkboxes.
+            </p>
+            <button type="button" data-action="reset-filters" class="px-4 py-2 rounded-lg bg-[#1E2A4A] text-white text-xs font-semibold">
+              Reset All Active Filters
+            </button>
+          </div>`;
+        return;
+      }
+
+      const q = StoreState.filters.searchQuery.trim();
+      grid.innerHTML = products
+        .map((item) => {
+          const activeColorName = StoreState.cardActiveSwatches[item.id] || item.colorVariants[0].name;
+          const activeVariant = item.colorVariants.find((v) => v.name === activeColorName) || item.colorVariants[0];
+          const svgUrl = buildTextileSvgDataUri(
+            item.title,
+            `${activeVariant.name} • ${item.gsm} GSM ${item.weave}`,
+            activeVariant.hex,
+            activeVariant.secondaryHex,
+            item.weave,
+            0
+          );
+
+          const swatchesHtml = item.colorVariants
+            .map((v) => {
+              const isSelected = v.name === activeVariant.name;
+              return `<button
+                type="button"
+                data-action="card-swatch"
+                data-product-id="${item.id}"
+                data-swatch-color="${escapeHtml(v.name)}"
+                title="${escapeHtml(v.name)} (${escapeHtml(v.dyeOrigin)})"
+                aria-label="Preview ${escapeHtml(v.name)} swatch"
+                class="w-5 h-5 rounded-full border border-white transition ${isSelected ? 'swatch-ring-active scale-110' : 'opacity-80 hover:opacity-100'}"
+                style="background-color: ${v.hex}"
+              ></button>`;
+            })
+            .join('');
+
+          return `
+            <article class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col" data-product-id="${item.id}">
+              <div class="relative aspect-[4/3] bg-slate-100 overflow-hidden group cursor-pointer" data-action="open-pdp" data-product-id="${item.id}">
+                <img
+                  src="${svgUrl}"
+                  alt="${escapeHtml(item.title)}"
+                  class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                />
+                <div class="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
+                  <span class="px-2 py-0.5 rounded bg-slate-900/80 text-white font-mono-code text-[10px]">
+                    ${item.gsm} GSM
+                  </span>
+                  <span class="px-2 py-0.5 rounded ${item.inStock ? 'bg-emerald-800/85 text-emerald-100' : 'bg-amber-800/85 text-amber-100'} text-[10px] font-medium">
+                    ${item.inStock ? 'In Stock' : 'Loom Pre-Order'}
+                  </span>
+                </div>
+                <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/75 to-transparent p-2.5 opacity-0 group-hover:opacity-100 transition flex justify-end">
+                  <span class="text-[11px] font-semibold text-amber-300">Click to Inspect 2.5x Weave &rarr;</span>
+                </div>
+              </div>
+
+              <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+                <div>
+                  <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                    <span>${highlightMatchedSubstring(item.fabric, q)}</span>
+                    <span class="font-mono-code">${escapeHtml(item.sku)}</span>
+                  </div>
+                  <h3 class="font-serif-display font-bold text-base text-[#1E2A4A] mt-0.5 leading-snug">
+                    ${highlightMatchedSubstring(item.title, q)}
+                  </h3>
+                  <p class="text-[11px] text-slate-500 mt-0.5">${highlightMatchedSubstring(item.weave, q)}</p>
+                </div>
+
+                <div class="space-y-3 pt-2 border-t border-slate-100">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      ${swatchesHtml}
+                    </div>
+                    <span class="text-base font-bold text-[#1E2A4A]">$${item.price}</span>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      data-action="open-pdp"
+                      data-product-id="${item.id}"
+                      class="py-1.5 px-2.5 rounded-lg border border-[#1E2A4A] text-[#1E2A4A] hover:bg-slate-50 text-xs font-semibold transition"
+                    >
+                      2.5x Weave Loupe
+                    </button>
+                    <button
+                      type="button"
+                      data-action="quick-add"
+                      data-product-id="${item.id}"
+                      class="py-1.5 px-2.5 rounded-lg bg-[#1E2A4A] hover:bg-slate-800 text-white text-xs font-semibold transition"
+                    >
+                      + Loom Bag
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>`;
+        })
+        .join('');
+    }
+
+    /**
+     * MODULE 2: SWATCH-SYNCED GALLERY & 2.5x TEXTILE WEAVE LOUPE CONTROLLER
+     */
+    function preloadImageUri(uri) {
+      if (ImagePreloadCache.has(uri)) return ImagePreloadCache.get(uri);
+      const p = new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(uri);
+        img.onerror = () => resolve(uri);
+        img.src = uri;
+      });
+      ImagePreloadCache.set(uri, p);
+      return p;
+    }
+
+    function openPdpModal(productId) {
+      const product = StoreState.catalog.find((p) => p.id === productId);
+      if (!product) return;
+
+      const initialSwatch = StoreState.cardActiveSwatches[productId] || product.colorVariants[0].name;
+      StoreState.pdpModal = {
+        isOpen: true,
+        productId: product.id,
+        activeSwatchName: initialSwatch,
+        activeAngleIndex: 0,
+        selectedSize: product.availableSizes.includes('M') ? 'M' : product.availableSizes[0]
+      };
+
+      // Preload all swatch & angle combinations into ImagePreloadCache
+      product.colorVariants.forEach((v) => {
+        [0, 1, 2].forEach((ang) => {
+          const uri = buildTextileSvgDataUri(product.title, `${v.name} • ${product.gsm} GSM`, v.hex, v.secondaryHex, product.weave, ang);
+          preloadImageUri(uri);
+        });
+      });
+
+      syncPdpModalDom();
+      const modal = document.getElementById('pdp-inspector-modal');
+      if (modal) modal.classList.remove('hidden');
+      logTelemetry('GalleryController', `Opened 2.5x Weave Inspector for ${product.sku} (${initialSwatch})`);
+    }
+
+    function syncPdpModalDom() {
+      const { productId, activeSwatchName, activeAngleIndex, selectedSize } = StoreState.pdpModal;
+      const product = StoreState.catalog.find((p) => p.id === productId);
+      if (!product) return;
+
+      const variant = product.colorVariants.find((v) => v.name === activeSwatchName) || product.colorVariants[0];
+      const mainUri = buildTextileSvgDataUri(
+        product.title,
+        `${variant.name} • ${product.gsm} GSM ${product.weave}`,
+        variant.hex,
+        variant.secondaryHex,
+        product.weave,
+        activeAngleIndex
+      );
+      // Use macro weave texture inside the 2.5x magnifier lens
+      const zoomUri = buildTextileSvgDataUri(
+        product.title,
+        `2.5x WEAVE GRAIN: ${variant.name}`,
+        variant.hex,
+        variant.secondaryHex,
+        product.weave,
+        1
+      );
+
+      document.getElementById('pdp-modal-sku').textContent = product.sku;
+      document.getElementById('pdp-modal-title').textContent = product.title;
+      document.getElementById('pdp-modal-fabric').textContent = product.fabric;
+      document.getElementById('pdp-modal-weave').textContent = `${product.weave} • ${product.gsm} GSM`;
+      document.getElementById('pdp-modal-price').textContent = `$${product.price}`;
+      document.getElementById('pdp-modal-desc').textContent = product.description;
+      document.getElementById('pdp-active-swatch-name').textContent = `${variant.name} (${variant.dyeOrigin})`;
+
+      const mainImg = document.getElementById('pdp-main-image');
+      if (mainImg) {
+        mainImg.classList.add('is-crossfading');
+        setTimeout(() => {
+          mainImg.src = mainUri;
+          mainImg.classList.remove('is-crossfading');
+        }, 70);
+      }
+
+      const loupe = document.getElementById('pdp-weave-loupe');
+      if (loupe) {
+        loupe.style.backgroundImage = `url("${zoomUri}")`;
+      }
+
+      // Render swatch buttons
+      const swatchContainer = document.getElementById('pdp-swatch-container');
+      if (swatchContainer) {
+        swatchContainer.innerHTML = product.colorVariants
+          .map((v) => {
+            const active = v.name === variant.name;
+            return `<button
+              type="button"
+              data-pdp-swatch="${escapeHtml(v.name)}"
+              aria-pressed="${active}"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition ${
+                active ? 'border-[#1E2A4A] bg-slate-100 text-[#1E2A4A]' : 'border-slate-200 bg-white text-slate-600'
+              }"
+            >
+              <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background-color: ${v.hex}"></span>
+              <span>${escapeHtml(v.name)}</span>
+            </button>`;
+          })
+          .join('');
+      }
+
+      // Render size buttons
+      const sizeContainer = document.getElementById('pdp-size-container');
+      if (sizeContainer) {
+        sizeContainer.innerHTML = product.availableSizes
+          .map((sz) => {
+            const active = sz === selectedSize;
+            return `<button
+              type="button"
+              data-pdp-size="${sz}"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                active ? 'border-[#1E2A4A] bg-[#1E2A4A] text-white' : 'border-slate-300 bg-white text-slate-700'
+              }"
+            >${sz}</button>`;
+          })
+          .join('');
+      }
+
+      // Update angle button styles
+      document.querySelectorAll('.angle-thumb-btn').forEach((btn) => {
+        const idx = Number(btn.dataset.angleIdx);
+        if (idx === activeAngleIndex) {
+          btn.className = 'angle-thumb-btn flex-1 py-2 px-2.5 rounded-lg border-2 border-[#1E2A4A] bg-slate-50 text-xs font-semibold text-[#1E2A4A]';
+        } else {
+          btn.className = 'angle-thumb-btn flex-1 py-2 px-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-600';
+        }
+      });
+    }
+
+    function handleStageMagnifierMove(event) {
+      const stage = document.getElementById('pdp-gallery-stage');
+      const loupe = document.getElementById('pdp-weave-loupe');
+      const coordLabel = document.getElementById('pdp-loupe-coords');
+      if (!stage || !loupe) return;
+
+      const rect = stage.getBoundingClientRect();
+      const relX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+      const relY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+
+      const radius = 74;
+      const tx = Math.round(relX * rect.width - radius);
+      const ty = Math.round(relY * rect.height - radius);
+
+      loupe.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+      loupe.style.backgroundPosition = `${(relX * 100).toFixed(1)}% ${(relY * 100).toFixed(1)}%`;
+      loupe.classList.add('loupe-visible');
+
+      if (coordLabel) {
+        coordLabel.textContent = `x:${Math.round(relX * 100)}% y:${Math.round(relY * 100)}%`;
+      }
+    }
+
+    /**
+     * MODULE 3: LIVE SEARCH DROPDOWN EXECUTION
+     */
+    function executeLiveSearch(rawQuery) {
+      const clean = rawQuery.trim();
+      StoreState.filters.searchQuery = clean;
+      applyFacetFilters();
+
+      const dropdown = document.getElementById('search-typeahead-dropdown');
+      const inputEl = document.getElementById('live-search-input');
+      if (!dropdown || !inputEl) return;
+
+      if (clean.length < 2) {
+        dropdown.classList.add('hidden');
+        inputEl.setAttribute('aria-expanded', 'false');
+        return;
+      }
+
+      const qLower = clean.toLowerCase();
+      const scored = StoreState.catalog
+        .map((item) => {
+          let score = 0;
+          if (item.title.toLowerCase().startsWith(qLower)) score += 30;
+          else if (item.title.toLowerCase().includes(qLower)) score += 18;
+          if (item.fabric.toLowerCase().includes(qLower)) score += 15;
+          if (item.weave.toLowerCase().includes(qLower)) score += 12;
+          if (String(item.gsm).includes(qLower)) score += 10;
+          if (item.sku.toLowerCase().includes(qLower)) score += 10;
+          return { item, score };
+        })
+        .filter((x) => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      StoreState.searchHighlightIndex = -1;
+      if (scored.length === 0) {
+        dropdown.innerHTML = `<div class="p-3.5 text-xs text-slate-500">No instant matches for "<strong>${escapeHtml(clean)}</strong>". Press Esc to clear.</div>`;
+      } else {
+        dropdown.innerHTML = scored
+          .map(({ item }, idx) => `
+            <button
+              type="button"
+              role="option"
+              data-suggestion-id="${item.id}"
+              data-suggestion-idx="${idx}"
+              class="search-suggestion-row w-full text-left px-3.5 py-2.5 hover:bg-slate-50 flex items-center justify-between border-b border-slate-100 last:border-0 transition"
+            >
+              <div>
+                <div class="text-xs font-bold text-[#1E2A4A]">${highlightMatchedSubstring(item.title, clean)}</div>
+                <div class="text-[11px] text-slate-500">${highlightMatchedSubstring(item.fabric, clean)} &bull; ${highlightMatchedSubstring(item.weave, clean)} (${item.gsm} GSM)</div>
+              </div>
+              <span class="text-xs font-bold text-[#B85042] ml-2">$${item.price}</span>
+            </button>`)
+          .join('');
+      }
+
+      dropdown.classList.remove('hidden');
+      inputEl.setAttribute('aria-expanded', 'true');
+      logTelemetry('LiveSearch', `Debounced query "${clean}" -> ${scored.length} typeahead suggestions`);
+    }
+
+    const debouncedSearchHandler = debounce(executeLiveSearch, 250);
+
+    /**
+     * MODULE 4: BIOMETRIC FIT & BOLT YARDAGE CALCULATOR + PERSISTENT CART DRAWER
+     */
+    function computeBiometricFitAndYardage() {
+      const { garmentType, chestCm, waistCm, heightCm, fitPreference, boltWidthInches } = StoreState.fitStudio;
+      const easeMap = { tailored: -2, classic: 0, relaxed: 4 };
+      const effectiveChest = Number(chestCm) + (easeMap[fitPreference] || 0);
+
+      let recommendedSize = 'M';
+      if (effectiveChest < 90 && waistCm < 76) recommendedSize = 'XS';
+      else if (effectiveChest < 96 && waistCm < 82) recommendedSize = 'S';
+      else if (effectiveChest < 104 && waistCm < 90) recommendedSize = 'M';
+      else if (effectiveChest < 112 && waistCm < 98) recommendedSize = 'L';
+      else if (effectiveChest < 120) recommendedSize = 'XL';
+      else recommendedSize = 'XXL';
+
+      const baseMap = {
+        overshirt: 2.10,
+        kurta_tunic: 2.65,
+        trouser: 1.85,
+        kaftan_dress: 3.20,
+        unstructured_blazer: 2.50
+      };
+      const baseMeters = baseMap[garmentType] || 2.10;
+      const heightAdj = ((Number(heightCm) - 170) / 10) * 0.12;
+      const widthFactor = Number(boltWidthInches) === 44 ? 1.28 : 1.0;
+
+      const rawMeters = (baseMeters + heightAdj) * widthFactor;
+      const shrinkage = rawMeters * 0.05;
+      const totalMeters = Math.max(1.25, Number((rawMeters + shrinkage).toFixed(2)));
+
+      document.getElementById('calc-output-size').textContent = `Size ${recommendedSize}`;
+      document.getElementById('calc-output-meters').textContent = `${totalMeters.toFixed(2)} Meters`;
+      document.getElementById('calc-detail-chest').textContent = `${effectiveChest} cm (${fitPreference})`;
+      document.getElementById('calc-detail-bolt').textContent = `${boltWidthInches}" Bolt (${widthFactor.toFixed(2)}x)`;
+      document.getElementById('calc-detail-shrinkage').textContent = `+${shrinkage.toFixed(2)} Meters`;
+      document.getElementById('calc-output-note').textContent =
+        `Recommended Size ${recommendedSize} for a ${fitPreference} silhouette, requiring ${totalMeters.toFixed(2)}m of ${boltWidthInches}" handloom cloth.`;
+
+      return { recommendedSize, totalMeters };
+    }
+
+    function loadCartFromStorage() {
+      try {
+        const raw = window.localStorage.getItem('vastraloom_week4_cart');
+        if (raw) {
+          const entries = JSON.parse(raw);
+          StoreState.cart = new Map(entries);
+        }
+      } catch (_) {
+        // Fallback to in-memory Map
+      }
+      if (StoreState.cart.size === 0) {
+        // Pre-seed with 1 signature item so user can immediately test cart interactions
+        addItemToCart({
+          productId: 'VL-101',
+          colorName: 'Natural Indigo',
+          size: 'M',
+          customMeters: '2.25m (58" Bolt)',
+          quantity: 1,
+          silent: true
+        });
+      }
+      renderCartDrawer();
+    }
+
+    function persistCartToStorage() {
+      try {
+        const serialized = JSON.stringify(Array.from(StoreState.cart.entries()));
+        window.localStorage.setItem('vastraloom_week4_cart', serialized);
+      } catch (_) {
+        // Ignore storage restrictions in sandboxed environments
+      }
+    }
+
+    function addItemToCart({ productId, colorName, size, customMeters = 'Standard RTW', quantity = 1, silent = false }) {
+      const product = StoreState.catalog.find((p) => p.id === productId);
+      if (!product) return;
+
+      const compositeKey = `${productId}__${colorName}__${size}__${customMeters}`;
+      const existing = StoreState.cart.get(compositeKey);
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        StoreState.cart.set(compositeKey, {
+          compositeKey,
+          productId: product.id,
+          title: product.title,
+          fabric: product.fabric,
+          price: product.price,
+          colorName,
+          size,
+          customMeters,
+          quantity
+        });
+      }
+
+      persistCartToStorage();
+      renderCartDrawer();
+      if (!silent) {
+        logTelemetry('FitAndCartManager', `Upserted SKU key [${compositeKey}] into cart & synced localStorage`);
+        showToast(`Added ${product.title} (${size}, ${colorName}) to Loom Bag`);
+      }
+    }
+
+    function renderCartDrawer() {
+      const listEl = document.getElementById('cart-items-list');
+      const badgeEl = document.getElementById('cart-badge-count');
+      const subtotalEl = document.getElementById('cart-subtotal-value');
+      const shipMsgEl = document.getElementById('cart-shipping-msg');
+      const shipPctEl = document.getElementById('cart-shipping-pct');
+      const shipBarEl = document.getElementById('cart-shipping-bar');
+
+      let totalQty = 0;
+      let subtotal = 0;
+      const items = Array.from(StoreState.cart.values());
+      items.forEach((it) => {
+        totalQty += it.quantity;
+        subtotal += it.price * it.quantity;
+      });
+
+      if (badgeEl) badgeEl.textContent = String(totalQty);
+      if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+
+      const freeThreshold = 250;
+      const pct = Math.min(100, Math.round((subtotal / freeThreshold) * 100));
+      if (shipBarEl) shipBarEl.style.width = `${pct}%`;
+      if (shipPctEl) shipPctEl.textContent = `${pct}%`;
+      if (shipMsgEl) {
+        shipMsgEl.textContent = subtotal >= freeThreshold
+          ? 'Complimentary Heritage Loom Courier Unlocked!'
+          : `Add $${(freeThreshold - subtotal).toFixed(0)} more for Complimentary Loom Courier`;
+      }
+
+      if (!listEl) return;
+      if (items.length === 0) {
+        listEl.innerHTML = `
+          <div class="text-center py-12 space-y-2 text-slate-500">
+            <p class="text-sm font-semibold text-slate-700">Your VastraLoom Bag is Empty</p>
+            <p class="text-xs">Explore the catalog or configure custom bolt yardage in the Fit Studio.</p>
+          </div>`;
+        return;
+      }
+
+      listEl.innerHTML = items
+        .map((item) => `
+          <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-start justify-between gap-3">
+            <div class="space-y-1">
+              <h4 class="text-xs font-bold text-[#1E2A4A]">${escapeHtml(item.title)}</h4>
+              <p class="text-[11px] text-slate-500">
+                Swatch: <strong>${escapeHtml(item.colorName)}</strong> &bull; Size: <strong>${escapeHtml(item.size)}</strong>
+              </p>
+              <span class="inline-block font-mono-code text-[10px] px-2 py-0.5 rounded bg-slate-100 text-[#2A6F68]">
+                Cut: ${escapeHtml(item.customMeters)}
+              </span>
+            </div>
+            <div class="text-right space-y-2">
+              <div class="text-xs font-bold text-[#1E2A4A]">$${(item.price * item.quantity).toFixed(2)}</div>
+              <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden text-xs">
+                <button type="button" data-cart-op="dec" data-cart-key="${escapeHtml(item.compositeKey)}" class="px-2 py-0.5 bg-slate-50 hover:bg-slate-200 font-bold">-</button>
+                <span class="px-2 py-0.5 font-mono-code text-[11px]">${item.quantity}</span>
+                <button type="button" data-cart-op="inc" data-cart-key="${escapeHtml(item.compositeKey)}" class="px-2 py-0.5 bg-slate-50 hover:bg-slate-200 font-bold">+</button>
+              </div>
+            </div>
+          </div>`)
+        .join('');
+    }
+
+    function resetAllFilters() {
+      StoreState.filters.fabrics.clear();
+      StoreState.filters.sizes.clear();
+      StoreState.filters.dyes.clear();
+      StoreState.filters.maxGsm = 320;
+      StoreState.filters.maxPrice = 260;
+      StoreState.filters.inStockOnly = false;
+      StoreState.filters.searchQuery = '';
+      StoreState.filters.sortBy = 'featured';
+
+      document.querySelectorAll('#filter-sidebar input[type="checkbox"]').forEach((cb) => { cb.checked = false; });
+      document.querySelectorAll('[data-facet-size]').forEach((btn) => {
+        btn.className = 'px-2.5 py-1 rounded-md text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:border-[#1E2A4A] transition';
+      });
+      const gsmSlider = document.getElementById('slider-max-gsm');
+      if (gsmSlider) gsmSlider.value = '320';
+      document.getElementById('label-max-gsm').textContent = '320 GSM';
+
+      const priceSlider = document.getElementById('slider-max-price');
+      if (priceSlider) priceSlider.value = '260';
+      document.getElementById('label-max-price').textContent = '$260';
+
+      const searchInput = document.getElementById('live-search-input');
+      if (searchInput) searchInput.value = '';
+      document.getElementById('btn-clear-search').classList.add('hidden');
+      document.getElementById('search-typeahead-dropdown').classList.add('hidden');
+
+      applyFacetFilters();
+      showToast('All textile filters reset');
+    }
+
+    /**
+     * INITIALIZE APPLICATION & ROOT EVENT DELEGATION
+     */
+    window.addEventListener('DOMContentLoaded', () => {
+      buildFilterSidebarFacets();
+      applyFacetFilters();
+      loadCartFromStorage();
+
+      // Populate product selector in Fit Calculator
+      const calcProdSelect = document.getElementById('calc-product-link');
+      if (calcProdSelect) {
+        calcProdSelect.innerHTML = StoreState.catalog
+          .map((p) => `<option value="${p.id}">${escapeHtml(p.title)} ($${p.price})</option>`)
+          .join('');
+      }
+      computeBiometricFitAndYardage();
+
+      // 1. Delegated Listener on Filter Sidebar
+      document.getElementById('filter-sidebar').addEventListener('change', (e) => {
+        const target = e.target;
+        if (target.matches('input[data-facet-group]')) {
+          const group = target.dataset.facetGroup;
+          if (target.checked) StoreState.filters[group].add(target.value);
+          else StoreState.filters[group].delete(target.value);
+          applyFacetFilters();
+        } else if (target.id === 'toggle-in-stock') {
+          StoreState.filters.inStockOnly = target.checked;
+          applyFacetFilters();
+        }
+      });
+
+      document.getElementById('filter-sidebar').addEventListener('click', (e) => {
+        const sizeBtn = e.target.closest('[data-facet-size]');
+        if (sizeBtn) {
+          const sz = sizeBtn.dataset.facetSize;
+          if (StoreState.filters.sizes.has(sz)) {
+            StoreState.filters.sizes.delete(sz);
+            sizeBtn.className = 'px-2.5 py-1 rounded-md text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:border-[#1E2A4A] transition';
+          } else {
+            StoreState.filters.sizes.add(sz);
+            sizeBtn.className = 'px-2.5 py-1 rounded-md text-xs font-semibold border border-[#1E2A4A] bg-[#1E2A4A] text-white transition';
+          }
+          applyFacetFilters();
+        }
+      });
+
+      // Range Sliders with requestAnimationFrame throttling
+      let rafPending = false;
+      const handleRangeInput = () => {
+        if (rafPending) return;
+        rafPending = true;
+        window.requestAnimationFrame(() => {
+          rafPending = false;
+          const gsmVal = Number(document.getElementById('slider-max-gsm').value);
+          const priceVal = Number(document.getElementById('slider-max-price').value);
+          StoreState.filters.maxGsm = gsmVal;
+          StoreState.filters.maxPrice = priceVal;
+          document.getElementById('label-max-gsm').textContent = `${gsmVal} GSM`;
+          document.getElementById('label-max-price').textContent = `$${priceVal}`;
+          applyFacetFilters();
+        });
+      };
+      document.getElementById('slider-max-gsm').addEventListener('input', handleRangeInput);
+      document.getElementById('slider-max-price').addEventListener('input', handleRangeInput);
+
+      // Sort Select
+      document.getElementById('select-sort-by').addEventListener('change', (e) => {
+        StoreState.filters.sortBy = e.target.value;
+        applyFacetFilters();
+      });
+
+      // Active Filter Pill Removal
+      document.getElementById('active-filter-pills').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-remove-pill]');
+        if (!btn) return;
+        const type = btn.dataset.removePill;
+        const val = btn.dataset.pillVal;
+        if (type === 'fabric') StoreState.filters.fabrics.delete(val);
+        if (type === 'size') StoreState.filters.sizes.delete(val);
+        if (type === 'dye') StoreState.filters.dyes.delete(val);
+        if (type === 'gsm') StoreState.filters.maxGsm = 320;
+        if (type === 'price') StoreState.filters.maxPrice = 260;
+        if (type === 'stock') StoreState.filters.inStockOnly = false;
+        if (type === 'query') {
+          StoreState.filters.searchQuery = '';
+          document.getElementById('live-search-input').value = '';
+        }
+        applyFacetFilters();
+      });
+
+      // 2. Delegated Listener on Catalog Grid
+      document.getElementById('catalog-grid').addEventListener('click', (e) => {
+        const swatchBtn = e.target.closest('[data-action="card-swatch"]');
+        if (swatchBtn) {
+          e.stopPropagation();
+          const pid = swatchBtn.dataset.productId;
+          const color = swatchBtn.dataset.swatchColor;
+          StoreState.cardActiveSwatches[pid] = color;
+          renderCatalogGrid(StoreState.filteredCatalog);
+          logTelemetry('GalleryController', `Card swatch switched on ${pid} -> ${color}`);
+          return;
+        }
+
+        const quickAddBtn = e.target.closest('[data-action="quick-add"]');
+        if (quickAddBtn) {
+          const pid = quickAddBtn.dataset.productId;
+          const product = StoreState.catalog.find((p) => p.id === pid);
+          if (product) {
+            const activeColor = StoreState.cardActiveSwatches[pid] || product.colorVariants[0].name;
+            addItemToCart({
+              productId: pid,
+              colorName: activeColor,
+              size: product.availableSizes[0],
+              customMeters: 'Standard RTW'
+            });
+          }
+          return;
+        }
+
+        const openPdpTrigger = e.target.closest('[data-action="open-pdp"]');
+        if (openPdpTrigger) {
+          openPdpModal(openPdpTrigger.dataset.productId);
+        }
+      });
+
+      // Global Reset Filter Buttons
+      document.body.addEventListener('click', (e) => {
+        if (e.target.closest('[data-action="reset-filters"]')) {
+          resetAllFilters();
+        }
+      });
+
+      // 3. Debounced Live Search Listeners
+      const searchInput = document.getElementById('live-search-input');
+      const clearSearchBtn = document.getElementById('btn-clear-search');
+      searchInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        clearSearchBtn.classList.toggle('hidden', val.length === 0);
+        debouncedSearchHandler(val);
+      });
+
+      searchInput.addEventListener('keydown', (e) => {
+        const dropdown = document.getElementById('search-typeahead-dropdown');
+        const rows = Array.from(dropdown.querySelectorAll('.search-suggestion-row'));
+        if (e.key === 'Escape') {
+          dropdown.classList.add('hidden');
+          return;
+        }
+        if (rows.length === 0) return;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          StoreState.searchHighlightIndex = (StoreState.searchHighlightIndex + 1) % rows.length;
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          StoreState.searchHighlightIndex = (StoreState.searchHighlightIndex - 1 + rows.length) % rows.length;
+        } else if (e.key === 'Enter' && StoreState.searchHighlightIndex >= 0) {
+          e.preventDefault();
+          const chosenId = rows[StoreState.searchHighlightIndex].dataset.suggestionId;
+          dropdown.classList.add('hidden');
+          openPdpModal(chosenId);
+          return;
+        }
+        rows.forEach((r, idx) => {
+          r.classList.toggle('bg-amber-50', idx === StoreState.searchHighlightIndex);
+        });
+      });
+
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearSearchBtn.classList.add('hidden');
+        executeLiveSearch('');
+      });
+
+      document.getElementById('search-typeahead-dropdown').addEventListener('click', (e) => {
+        const row = e.target.closest('[data-suggestion-id]');
+        if (row) {
+          document.getElementById('search-typeahead-dropdown').classList.add('hidden');
+          openPdpModal(row.dataset.suggestionId);
+        }
+      });
+
+      // 4. PDP Weave Inspector Modal & 2.5x Magnifier Listeners
+      const galleryStage = document.getElementById('pdp-gallery-stage');
+      galleryStage.addEventListener('pointermove', handleStageMagnifierMove);
+      galleryStage.addEventListener('pointerleave', () => {
+        document.getElementById('pdp-weave-loupe').classList.remove('loupe-visible');
+      });
+
+      document.getElementById('pdp-swatch-container').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-pdp-swatch]');
+        if (btn) {
+          StoreState.pdpModal.activeSwatchName = btn.dataset.pdpSwatch;
+          StoreState.cardActiveSwatches[StoreState.pdpModal.productId] = btn.dataset.pdpSwatch;
+          syncPdpModalDom();
+          renderCatalogGrid(StoreState.filteredCatalog);
+          logTelemetry('GalleryController', `Switched PDP swatch -> ${btn.dataset.pdpSwatch}`);
+        }
+      });
+
+      document.getElementById('pdp-size-container').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-pdp-size]');
+        if (btn) {
+          StoreState.pdpModal.selectedSize = btn.dataset.pdpSize;
+          syncPdpModalDom();
+        }
+      });
+
+      document.getElementById('pdp-angle-strip').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-angle-idx]');
+        if (btn) {
+          StoreState.pdpModal.activeAngleIndex = Number(btn.dataset.angleIdx);
+          syncPdpModalDom();
+          logTelemetry('GalleryController', `Switched inspection angle -> index ${btn.dataset.angleIdx}`);
+        }
+      });
+
+      document.getElementById('btn-pdp-add-to-cart').addEventListener('click', () => {
+        const { productId, activeSwatchName, selectedSize } = StoreState.pdpModal;
+        addItemToCart({
+          productId,
+          colorName: activeSwatchName,
+          size: selectedSize,
+          customMeters: 'Standard RTW'
+        });
+        document.getElementById('pdp-inspector-modal').classList.add('hidden');
+        document.getElementById('cart-drawer-backdrop').classList.remove('hidden');
+      });
+
+      document.getElementById('btn-close-pdp-modal').addEventListener('click', () => {
+        document.getElementById('pdp-inspector-modal').classList.add('hidden');
+      });
+
+      document.getElementById('btn-jump-to-calc').addEventListener('click', () => {
+        document.getElementById('pdp-inspector-modal').classList.add('hidden');
+        switchMainTab('calculator');
+      });
+
+      // 5. Navigation Tabs (Catalog vs. Fit & Yardage Studio)
+      function switchMainTab(tabName) {
+        const isCat = tabName === 'catalog';
+        document.getElementById('view-catalog').classList.toggle('hidden', !isCat);
+        document.getElementById('view-calculator').classList.toggle('hidden', isCat);
+        document.getElementById('tab-btn-catalog').className = isCat
+          ? 'px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E2A4A] text-white transition'
+          : 'px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+        document.getElementById('tab-btn-calculator').className = !isCat
+          ? 'px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E2A4A] text-white transition'
+          : 'px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+      }
+
+      document.getElementById('tab-btn-catalog').addEventListener('click', () => switchMainTab('catalog'));
+      document.getElementById('tab-btn-calculator').addEventListener('click', () => switchMainTab('calculator'));
+
+      // 6. Fit & Bolt Yardage Studio Listeners
+      const syncFitInputs = () => {
+        StoreState.fitStudio.garmentType = document.getElementById('calc-garment-select').value;
+        StoreState.fitStudio.linkedProductId = document.getElementById('calc-product-link').value;
+        StoreState.fitStudio.chestCm = Number(document.getElementById('input-chest-cm').value) || 100;
+        StoreState.fitStudio.waistCm = Number(document.getElementById('input-waist-cm').value) || 84;
+        StoreState.fitStudio.heightCm = Number(document.getElementById('input-height-cm').value) || 176;
+        computeBiometricFitAndYardage();
+      };
+      ['calc-garment-select', 'calc-product-link', 'input-chest-cm', 'input-waist-cm', 'input-height-cm'].forEach((id) => {
+        document.getElementById(id).addEventListener('input', syncFitInputs);
+      });
+
+      document.getElementById('fit-ease-group').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-ease-val]');
+        if (!btn) return;
+        StoreState.fitStudio.fitPreference = btn.dataset.easeVal;
+        document.querySelectorAll('.ease-btn').forEach((b) => {
+          const active = b.dataset.easeVal === StoreState.fitStudio.fitPreference;
+          b.className = active
+            ? 'ease-btn px-2.5 py-2 rounded-lg text-xs font-semibold border border-[#1E2A4A] bg-[#1E2A4A] text-white'
+            : 'ease-btn px-2.5 py-2 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700';
+        });
+        computeBiometricFitAndYardage();
+      });
+
+      document.getElementById('bolt-width-group').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-bolt-val]');
+        if (!btn) return;
+        StoreState.fitStudio.boltWidthInches = Number(btn.dataset.boltVal);
+        document.querySelectorAll('.bolt-btn').forEach((b) => {
+          const active = Number(b.dataset.boltVal) === StoreState.fitStudio.boltWidthInches;
+          b.className = active
+            ? 'bolt-btn px-3 py-2 rounded-lg text-xs font-semibold border border-[#1E2A4A] bg-[#1E2A4A] text-white'
+            : 'bolt-btn px-3 py-2 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700';
+        });
+        computeBiometricFitAndYardage();
+      });
+
+      document.getElementById('btn-add-calculated-item').addEventListener('click', () => {
+        const { recommendedSize, totalMeters } = computeBiometricFitAndYardage();
+        const pid = StoreState.fitStudio.linkedProductId;
+        const product = StoreState.catalog.find((p) => p.id === pid) || StoreState.catalog[0];
+        addItemToCart({
+          productId: product.id,
+          colorName: product.colorVariants[0].name,
+          size: recommendedSize,
+          customMeters: `${totalMeters}m (${StoreState.fitStudio.boltWidthInches}" Bolt)`
+        });
+        document.getElementById('cart-drawer-backdrop').classList.remove('hidden');
+      });
+
+      // 7. Cart Drawer Controls
+      document.getElementById('btn-open-cart').addEventListener('click', () => {
+        document.getElementById('cart-drawer-backdrop').classList.remove('hidden');
+      });
+      document.getElementById('btn-close-cart').addEventListener('click', () => {
+        document.getElementById('cart-drawer-backdrop').classList.add('hidden');
+      });
+      document.getElementById('cart-items-list').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-cart-op]');
+        if (!btn) return;
+        const key = btn.dataset.cartKey;
+        const op = btn.dataset.cartOp;
+        const item = StoreState.cart.get(key);
+        if (!item) return;
+        if (op === 'inc') item.quantity += 1;
+        else if (op === 'dec') {
+          item.quantity -= 1;
+          if (item.quantity <= 0) StoreState.cart.delete(key);
+        }
+        persistCartToStorage();
+        renderCartDrawer();
+      });
+      document.getElementById('btn-clear-cart').addEventListener('click', () => {
+        StoreState.cart.clear();
+        persistCartToStorage();
+        renderCartDrawer();
+        showToast('Cleared Loom Bag');
+      });
+      document.getElementById('btn-checkout-action').addEventListener('click', () => {
+        if (StoreState.cart.size === 0) {
+          showToast('Add at least one textile piece before checkout');
+          return;
+        }
+        showToast('Order simulated! State verified in localStorage.');
+        document.getElementById('cart-drawer-backdrop').classList.add('hidden');
+      });
+
+      // 8. Telemetry Drawer Controls
+      document.getElementById('btn-toggle-telemetry').addEventListener('click', () => {
+        document.getElementById('telemetry-drawer').classList.toggle('hidden');
+      });
+      document.getElementById('btn-clear-telemetry').addEventListener('click', () => {
+        StoreState.telemetryEvents = [];
+        document.getElementById('telemetry-count').textContent = '0';
+        document.getElementById('telemetry-log-list').innerHTML = '';
+      });
+    });
+  </script>
+</body>
+</html>
